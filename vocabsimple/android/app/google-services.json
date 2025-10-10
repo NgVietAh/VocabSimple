@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "550057242011",
+    "project_id": "vocabsimple-d60bf",
+    "storage_bucket": "vocabsimple-d60bf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550057242011:android:6862ac66974fd69670053e",
+        "android_client_info": {
+          "package_name": "com.anh.vocabsimple"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAePOMpuHmTfh_m_Swr7CZwc5QGw172WWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
