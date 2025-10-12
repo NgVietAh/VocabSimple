@@ -30,12 +30,33 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Firebase core & auth
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
-  cloud_firestore: ^6.0.2
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  # Firebase database (Realtime hoặc Firestore – tùy Anh chọn)
+  cloud_firestore: ^6.0.2
+  firebase_database: ^12.0.2
+
+  # Google Sign-In
+  google_sign_in: ^6.2.1
+
+  # Facebook Login
+  flutter_facebook_auth: ^6.0.2
+
+  # Text-to-Speech (đọc từ vựng)
+  flutter_tts: ^3.8.5
+
+  # Speech-to-Text (luyện nói)
+  # speech_to_text: ^6.3.0
+
+  # Hiển thị thông báo nhanh
+  fluttertoast: ^8.2.4
+
+  # Quản lý trạng thái (nếu dùng Provider)
+  provider: ^6.1.1
+
+  # Giao diện iOS
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
