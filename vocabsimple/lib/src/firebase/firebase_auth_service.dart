@@ -4,6 +4,7 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? get currentUser => _auth.currentUser;
 
   /// Đăng nhập bằng email và mật khẩu
   Future<User?> signIn(String email, String password) async {

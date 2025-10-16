@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   # Firebase core & auth
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
@@ -59,6 +60,9 @@ dependencies:
   # Giao diện iOS
   cupertino_icons: ^1.0.8
 
+  # Flashcard lật mặt
+  flip_card: ^0.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -75,7 +79,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  assets:
+  - assets/images/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

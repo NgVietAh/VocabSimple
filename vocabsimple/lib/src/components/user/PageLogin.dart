@@ -135,7 +135,10 @@ class _PageLoginState extends State<PageLogin> {
             const SizedBox(height: 10),
             ElevatedButton.icon(
               onPressed: _handleGoogleLogin,
-              icon: const Icon(Icons.login),
+              icon: Image.asset(
+                'assets/images/google_icon.png',
+                width: 24,
+                height: 24),
               label: const Text('Đăng nhập bằng Google'),
             ),
             ElevatedButton.icon(
