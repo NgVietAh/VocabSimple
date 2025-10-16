@@ -12,7 +12,20 @@
           "package_name": "com.anh.vocabsimple"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "550057242011-hjfjfeqk0aljnqma2ueresma526mci84.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.anh.vocabsimple",
+            "certificate_hash": "2c1418aefd7899f8cdfc2d4087cc19d2b83dfe4b"
+          }
+        },
+        {
+          "client_id": "550057242011-5vaecpg9dkuimbkts7jstcpq7e5bf2kr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAePOMpuHmTfh_m_Swr7CZwc5QGw172WWI"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "550057242011-5vaecpg9dkuimbkts7jstcpq7e5bf2kr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
