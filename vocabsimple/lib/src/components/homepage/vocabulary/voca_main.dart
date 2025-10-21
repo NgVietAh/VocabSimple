@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:vocabsimple/src/components/model/topic_voca.dart';
+import 'package:vocabsimple/src/services/local_database_service.dart';
 
 class VocaMainPage extends StatefulWidget {
   const VocaMainPage({super.key});
@@ -10,26 +10,21 @@ class VocaMainPage extends StatefulWidget {
 }
 
 class _VocaMainPageState extends State<VocaMainPage> {
-  final databaseRef = FirebaseDatabase.instance.ref().child('vocabulary');
   List<TopicVoca> items = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    loadTopics();
+    loadTopicsFromSQLite();
   }
 
-  Future<void> loadTopics() async {
-    final snapshot = await databaseRef.get();
-    final data = snapshot.value as Map?;
-    if (data != null) {
-      data.forEach((key, value) {
-        final topic = TopicVoca.fromMap(key, value);
-        items.add(topic);
-      });
-    }
+  Future<void> loadTopicsFromSQLite() async {
+    final rawTopics = await LocalDatabaseService.getTopics();
+    final topicList = rawTopics.map((e) => TopicVoca.fromMap(e['topic'], e)).toList();
+
     setState(() {
+      items = topicList;
       isLoading = false;
     });
   }

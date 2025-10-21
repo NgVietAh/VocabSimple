@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:vocabsimple/src/services/local_database_service.dart';
 
 class FlashcardPage extends StatefulWidget {
   final String topic;
@@ -21,29 +21,13 @@ class _FlashcardPageState extends State<FlashcardPage> {
   @override
   void initState() {
     super.initState();
-    loadWords();
+    loadWordsFromSQLite();
   }
 
-  Future<void> loadWords() async {
-    final ref = FirebaseDatabase.instance
-        .ref()
-        .child('vocabulary')
-        .child(widget.topic)
-        .child('words');
-
-    final snapshot = await ref.get();
-    final data = snapshot.value as Map?;
-    if (data != null) {
-      data.forEach((key, value) {
-        words.add({
-          'name': value['name'] ?? '',
-          'phonetic': value['phonetic'] ?? '',
-          'translate': value['translate'] ?? '',
-        });
-      });
-    }
-
+  Future<void> loadWordsFromSQLite() async {
+    final rawWords = await LocalDatabaseService.getWordsByTopic(widget.topic);
     setState(() {
+      words.addAll(rawWords);
       isLoading = false;
     });
   }
