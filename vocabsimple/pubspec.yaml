@@ -31,6 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  sqflite: ^2.3.2
+  path: ^1.9.0
+  
   # Firebase core & auth
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
@@ -81,6 +84,7 @@ dev_dependencies:
 flutter:
   assets:
   - assets/images/
+  - assets/data/vocabulary.json
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
