@@ -1,0 +1,21 @@
+# Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+ios/
+macos/
+web/
+windows/
+linux/
+
+# Android
+android/app/google-services.json
+*.keystore
+
+# VS Code
+.vscode/
+
+# Others
+*.log
+*.DS_Store
