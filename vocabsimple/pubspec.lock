@@ -177,6 +177,7 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.2.6+19"
+<<<<<<< HEAD
   flip_card:
     dependency: "direct main"
     description:
@@ -185,6 +186,8 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.7.0"
+=======
+>>>>>>> 30838f6 (da xong login, register, va login = google, nhung dang loi login facebook, giao dien don gian khong dep mat)
   flutter:
     dependency: "direct main"
     description: flutter

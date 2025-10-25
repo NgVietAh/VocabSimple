@@ -30,7 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+<<<<<<< HEAD
 
+=======
+>>>>>>> 30838f6 (da xong login, register, va login = google, nhung dang loi login facebook, giao dien don gian khong dep mat)
   # Firebase core & auth
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
