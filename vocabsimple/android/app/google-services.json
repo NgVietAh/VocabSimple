@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "550057242011",
+    "project_id": "vocabsimple-d60bf",
+    "storage_bucket": "vocabsimple-d60bf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550057242011:android:6862ac66974fd69670053e",
+        "android_client_info": {
+          "package_name": "com.anh.vocabsimple"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "550057242011-hjfjfeqk0aljnqma2ueresma526mci84.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.anh.vocabsimple",
+            "certificate_hash": "2c1418aefd7899f8cdfc2d4087cc19d2b83dfe4b"
+          }
+        },
+        {
+          "client_id": "550057242011-5vaecpg9dkuimbkts7jstcpq7e5bf2kr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAePOMpuHmTfh_m_Swr7CZwc5QGw172WWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "550057242011-5vaecpg9dkuimbkts7jstcpq7e5bf2kr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
