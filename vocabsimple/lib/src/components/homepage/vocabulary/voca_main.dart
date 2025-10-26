@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:google_fonts/google_fonts.dart';
+=======
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
 import 'package:vocabsimple/src/components/model/topic_voca.dart';
 import 'package:vocabsimple/src/services/local_database_service.dart';
 
@@ -10,7 +13,11 @@ class VocaMainPage extends StatefulWidget {
   State<VocaMainPage> createState() => _VocaMainPageState();
 }
 
+<<<<<<< HEAD
 class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
+=======
+class _VocaMainPageState extends State<VocaMainPage> {
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
   List<TopicVoca> items = [];
   bool isLoading = true;
 
@@ -20,6 +27,7 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
     loadTopicsFromSQLite();
   }
 
+<<<<<<< HEAD
   @override
   void didPopNext() {
     // Được gọi khi quay lại trang này từ trang khác
@@ -55,10 +63,21 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
 
   Future<void> _refreshTopics() async {
     await loadTopicsFromSQLite();
+=======
+  Future<void> loadTopicsFromSQLite() async {
+    final rawTopics = await LocalDatabaseService.getTopics();
+    final topicList = rawTopics.map((e) => TopicVoca.fromMap(e['topic'], e)).toList();
+
+    setState(() {
+      items = topicList;
+      isLoading = false;
+    });
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
   }
 
   Widget buildImage(String path) {
     if (path.startsWith('http')) {
+<<<<<<< HEAD
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.network(path, width: 80, height: 80, fit: BoxFit.cover),
@@ -68,10 +87,16 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
         borderRadius: BorderRadius.circular(12),
         child: Image.asset(path, width: 80, height: 80, fit: BoxFit.cover),
       );
+=======
+      return Image.network(path, width: 100, height: 100, fit: BoxFit.cover);
+    } else {
+      return Image.asset(path, width: 100, height: 100, fit: BoxFit.cover);
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
     }
   }
 
   Widget buildItemCard(TopicVoca item) {
+<<<<<<< HEAD
     final progress = item.percent / 100.0;
     final Color progressColor = progress == 0
         ? Colors.grey[400]!
@@ -81,6 +106,8 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
                 ? Colors.blue[600]!
                 : Colors.green[600]!;
 
+=======
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
@@ -90,6 +117,7 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
             'topic': item.topic,
             'name': item.name,
           },
+<<<<<<< HEAD
         ).then((_) async {
           // Refresh khi quay lại từ flashcard
           print('⬅️ Quay lại từ flashcard - Đang refresh...');
@@ -173,6 +201,31 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
                   ),
                 ],
               ),
+=======
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              buildImage(item.image),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text('${item.length} từ - ${item.percent}% đã học'),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios),
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
             ],
           ),
         ),
@@ -183,6 +236,7 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -217,6 +271,14 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
                 itemCount: items.length,
                 itemBuilder: (context, index) => buildItemCard(items[index]),
               ),
+=======
+      appBar: AppBar(title: const Text('VocabSimple')),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) => buildItemCard(items[index]),
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
             ),
     );
   }

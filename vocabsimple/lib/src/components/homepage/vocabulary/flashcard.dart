@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+<<<<<<< HEAD
 import 'package:google_fonts/google_fonts.dart';
+=======
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
 import 'package:vocabsimple/src/services/local_database_service.dart';
 
 class FlashcardPage extends StatefulWidget {
@@ -17,9 +20,13 @@ class FlashcardPage extends StatefulWidget {
 class _FlashcardPageState extends State<FlashcardPage> {
   final List<Map<String, dynamic>> words = [];
   final FlutterTts flutterTts = FlutterTts();
+<<<<<<< HEAD
   final PageController _pageController = PageController();
   bool isLoading = true;
   int currentIndex = 0;
+=======
+  bool isLoading = true;
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
 
   @override
   void initState() {
@@ -27,6 +34,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
     loadWordsFromSQLite();
   }
 
+<<<<<<< HEAD
   @override
   void dispose() {
     _pageController.dispose();
@@ -51,6 +59,8 @@ class _FlashcardPageState extends State<FlashcardPage> {
     }
   }
 
+=======
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
   Future<void> loadWordsFromSQLite() async {
     final rawWords = await LocalDatabaseService.getWordsByTopic(widget.topic);
     setState(() {
@@ -59,6 +69,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
     });
   }
 
+<<<<<<< HEAD
   // Đếm số từ đã học
   int _countLearnedWords() {
     return words.where((word) => word['isLearned'] == 1).length;
@@ -313,6 +324,38 @@ class _FlashcardPageState extends State<FlashcardPage> {
             ],
           ),
         ),
+=======
+  Widget buildCard(Map<String, dynamic> word) {
+    return FlipCard(
+      direction: FlipDirection.HORIZONTAL,
+      front: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Center(
+          child: Text(
+            word['name'],
+            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+      back: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.volume_up),
+              label: const Text("Phát âm"),
+              onPressed: () => flutterTts.speak(word['name']),
+            ),
+            const SizedBox(height: 8),
+            Text('/${word['phonetic']}/', style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 8),
+            Text(word['translate'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          ],
+        ),
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
       ),
     );
   }
@@ -320,6 +363,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -520,6 +564,17 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   ),
                 ),
               ],
+=======
+      appBar: AppBar(title: Text(widget.name)),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : PageView.builder(
+              itemCount: words.length,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: buildCard(words[index]),
+              ),
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
             ),
     );
   }

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vocabsimple/src/components/widgets/FunCard.dart';
 import 'package:vocabsimple/src/components/homepage/vocabulary/voca_main.dart';
 import 'package:vocabsimple/src/components/grammar/grammar_list_page.dart';
 import 'package:vocabsimple/src/components/test/test_list_page.dart';
+=======
+import 'package:vocabsimple/src/components/widgets/FunCard.dart';
+import 'package:vocabsimple/src/components/homepage/vocabulary/voca_main.dart';
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
 
 class FunctionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -18,11 +24,20 @@ class FunctionPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
                 // Header: Logo + Tên app
+=======
+    return Container(
+      margin: const EdgeInsets.only(top: 60.0, right: 25.0, left: 25.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Logo + Tên app + Avatar
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
+<<<<<<< HEAD
                         Image.asset("assets/images/LogoApp.png", width: 50, height: 50),
                         const SizedBox(width: 12),
                         Text(
@@ -43,10 +58,26 @@ class FunctionPage extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.person, color: Colors.blue[700], size: 28),
+=======
+                  Image.asset("assets/images/LogoApp.png", width: 60, height: 60),
+                  const SizedBox(width: 10),
+                  Text("Vocabsimple",
+                      style: TextStyle(
+                        color: Colors.blue[600],
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ))
+                ],
+              ),
+              const CircleAvatar(
+                radius: 25,
+                backgroundImage: AssetImage("assets/images/avatar.png"),
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
               ),
             ],
           ),
 
+<<<<<<< HEAD
                 const SizedBox(height: 24),
                 
                 // Tiêu đề Trang chủ
@@ -61,12 +92,20 @@ class FunctionPage extends StatelessWidget {
 
                 const SizedBox(height: 16),
                 
+=======
+          const SizedBox(height: 20),
+          const Text('Trang chủ',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+
+          const SizedBox(height: 15),
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
           // Search bar + Notification
           Row(
             children: [
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
+<<<<<<< HEAD
                           color: Colors.grey[100],
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: Colors.grey[300]!),
@@ -79,10 +118,21 @@ class FunctionPage extends StatelessWidget {
                             hintStyle: GoogleFonts.inter(color: Colors.grey[500]),
                       border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(vertical: 14),
+=======
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const TextField(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Tìm kiếm',
+                      border: InputBorder.none,
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
                     ),
                   ),
                 ),
               ),
+<<<<<<< HEAD
                     const SizedBox(width: 12),
                     Container(
                       width: 48,
@@ -128,12 +178,43 @@ class FunctionPage extends StatelessWidget {
 
                 // Card Học từ vựng
                 InkWell(
+=======
+              const SizedBox(width: 15),
+              Stack(
+                children: [
+                  const Icon(Icons.notifications_none, size: 27),
+                  Positioned(
+                    top: 1,
+                    right: 1,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                          color: Colors.orange, shape: BoxShape.circle),
+                      child: const Text("2",
+                          style: TextStyle(color: Colors.white, fontSize: 13)),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+
+          const SizedBox(height: 40),
+
+          // List of function (ví dụ: nút học từ vựng)
+          FunCard(
+            image: 'assets/images/vocabulary.png',
+            title: 'Học từ vựng',
+            subtitle: 'Theo chủ đề',
+            color: Colors.blue.shade400,
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const VocaMainPage()),
               );
             },
+<<<<<<< HEAD
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     width: double.infinity,
@@ -430,6 +511,10 @@ class FunctionPage extends StatelessWidget {
             ),
           ),
         ),
+=======
+          ),
+        ],
+>>>>>>> a84f2bf4f1df15c3e664fc13c72585042fc9c3ff
       ),
     );
   }
