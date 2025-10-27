@@ -66,6 +66,9 @@ dependencies:
   # Flashcard lật mặt
   flip_card: ^0.7.0
 
+  # Google Fonts cho font đẹp
+  google_fonts: ^6.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -85,6 +88,7 @@ flutter:
   assets:
   - assets/images/
   - assets/data/vocabulary.json
+  - assets/data/grammar.json
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

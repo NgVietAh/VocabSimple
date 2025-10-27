@@ -9,8 +9,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Khởi tạo Firebase
   await LocalDatabaseService.init(); // Khởi tạo SQLite
-  // await DataLoader.loadVocabularyFromJson(); // Đổ dữ liệu từ JSON vào SQLite nếu cần
-
+  await DataLoader.loadVocabularyFromJson(); // Đổ dữ liệu từ JSON vào SQLite nếu cần
+  
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     home: const PageLogin(),
