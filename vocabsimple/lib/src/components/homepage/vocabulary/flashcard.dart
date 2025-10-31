@@ -95,8 +95,8 @@ class _FlashcardPageState extends State<FlashcardPage> {
     // Lấy tiến trình mới từ ProgressService
     final newProgress = _progressService.getTopicProgress(widget.topic);
 
-    print('📊 Cập nhật tiến độ: ${widget.topic} - $newProgress%');
-    
+    print(' Cập nhật tiến độ: ${widget.topic} - $newProgress%');
+
     // Force refresh UI để hiển thị tiến độ mới
     setState(() {
       // Trigger rebuild để hiển thị tiến độ mới
@@ -113,7 +113,9 @@ class _FlashcardPageState extends State<FlashcardPage> {
           backgroundColor: Colors.green[600],
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -121,13 +123,13 @@ class _FlashcardPageState extends State<FlashcardPage> {
 
   Widget buildCard(Map<String, dynamic> word) {
     final isLearned = word['isLearned'] == 1;
-    
+
     return FlipCard(
       direction: FlipDirection.HORIZONTAL,
       front: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isLearned 
+            colors: isLearned
                 ? [Colors.green[300]!, Colors.green[500]!]
                 : [Colors.blue[300]!, Colors.blue[500]!],
             begin: Alignment.topLeft,
@@ -150,7 +152,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 top: 16,
                 right: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -158,7 +163,11 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green[600], size: 16),
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green[600],
+                        size: 16,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Đã học',
@@ -172,7 +181,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   ),
                 ),
               ),
-            
+
             // Main content
             Center(
               child: Column(
@@ -188,7 +197,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(20),
@@ -210,7 +222,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
       back: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isLearned 
+            colors: isLearned
                 ? [Colors.green[300]!, Colors.green[500]!]
                 : [Colors.purple[300]!, Colors.purple[500]!],
             begin: Alignment.topLeft,
@@ -219,7 +231,9 @@ class _FlashcardPageState extends State<FlashcardPage> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: (isLearned ? Colors.green : Colors.purple).withOpacity(0.3),
+              color: (isLearned ? Colors.green : Colors.purple).withOpacity(
+                0.3,
+              ),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -247,13 +261,18 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Phát âm button
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: isLearned ? Colors.green[700] : Colors.purple[700],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  foregroundColor: isLearned
+                      ? Colors.green[700]
+                      : Colors.purple[700],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
@@ -268,16 +287,19 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 ),
                 onPressed: () => flutterTts.speak(word['name']),
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Đã học button
               if (!isLearned)
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.purple[700],
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
@@ -294,7 +316,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(25),
@@ -349,7 +374,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
               children: [
                 // Progress indicator với thanh bar
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
                   child: Column(
                     children: [
                       // Số từ hiện tại
@@ -367,7 +395,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: _getProgressColor(),
                               borderRadius: BorderRadius.circular(12),
@@ -391,7 +422,9 @@ class _FlashcardPageState extends State<FlashcardPage> {
                           value: _getLearnedPercent() / 100,
                           minHeight: 10,
                           backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(_getProgressColor()),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            _getProgressColor(),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -433,14 +466,20 @@ class _FlashcardPageState extends State<FlashcardPage> {
                       });
                     },
                     itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
                       child: buildCard(words[index]),
                     ),
                   ),
                 ),
                 // Navigation buttons
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
                   child: Column(
                     children: [
                       // Dots indicator
@@ -453,7 +492,9 @@ class _FlashcardPageState extends State<FlashcardPage> {
                               // Show simplified dots for more than 10 words
                               if (index == 2) {
                                 return Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
                                   child: Icon(
                                     Icons.more_horiz,
                                     size: 16,
@@ -478,9 +519,9 @@ class _FlashcardPageState extends State<FlashcardPage> {
                           },
                         ),
                       ),
-                      
+
                       const SizedBox(height: 12),
-                      
+
                       // Navigation buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -489,11 +530,18 @@ class _FlashcardPageState extends State<FlashcardPage> {
                           Expanded(
                             flex: 2,
                             child: ElevatedButton.icon(
-                              onPressed: currentIndex > 0 ? goToPreviousWord : null,
+                              onPressed: currentIndex > 0
+                                  ? goToPreviousWord
+                                  : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: currentIndex > 0 ? Colors.blue[600] : Colors.grey[300],
+                                backgroundColor: currentIndex > 0
+                                    ? Colors.blue[600]
+                                    : Colors.grey[300],
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -509,24 +557,31 @@ class _FlashcardPageState extends State<FlashcardPage> {
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(width: 12),
-                          
+
                           // Next button
                           Expanded(
                             flex: 2,
                             child: ElevatedButton.icon(
-                              onPressed: currentIndex < words.length - 1 ? goToNextWord : null,
+                              onPressed: currentIndex < words.length - 1
+                                  ? goToNextWord
+                                  : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: currentIndex < words.length - 1 
-                                    ? Colors.blue[600] 
+                                backgroundColor: currentIndex < words.length - 1
+                                    ? Colors.blue[600]
                                     : Colors.grey[300],
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                elevation: currentIndex < words.length - 1 ? 4 : 0,
+                                elevation: currentIndex < words.length - 1
+                                    ? 4
+                                    : 0,
                               ),
                               icon: Text(
                                 'Sau',
@@ -535,7 +590,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              label: const Icon(Icons.arrow_forward_ios, size: 16),
+                              label: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                              ),
                             ),
                           ),
                         ],
