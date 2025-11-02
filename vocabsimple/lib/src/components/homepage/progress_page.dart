@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:vocabsimple/src/components/model/topic_voca.dart';
+import 'package:vocabsimple/src/services/progress_service.dart';
 import 'package:vocabsimple/src/services/local_database_service.dart';
 
 class ProgressPage extends StatefulWidget {
@@ -10,15 +10,9 @@ class ProgressPage extends StatefulWidget {
   State<ProgressPage> createState() => _ProgressPageState();
 }
 
-class _ProgressPageState extends State<ProgressPage> with AutomaticKeepAliveClientMixin {
-  List<TopicVoca> topics = [];
+class _ProgressPageState extends State<ProgressPage> {
+  final ProgressService _progressService = ProgressService();
   bool isLoading = true;
-  int totalWords = 0;
-  int totalLearned = 0;
-  double overallProgress = 0.0;
-
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -26,266 +20,300 @@ class _ProgressPageState extends State<ProgressPage> with AutomaticKeepAliveClie
     loadProgressData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Reload data mỗi khi trang được hiển thị
-    if (mounted) {
-      loadProgressData();
-    }
-  }
-
   Future<void> loadProgressData() async {
-    final rawTopics = await LocalDatabaseService.getTopics();
-    final topicList = rawTopics.map((e) => TopicVoca.fromMap(e['topic'], e)).toList();
-
-    int totalW = 0;
-    int totalL = 0;
-
-    for (var topic in topicList) {
-      final learnedCount = await LocalDatabaseService.countLearnedWords(topic.topic);
-      totalW += topic.length;
-      totalL += learnedCount;
-    }
-
-    setState(() {
-      topics = topicList;
-      totalWords = totalW;
-      totalLearned = totalL;
-      overallProgress = totalW > 0 ? (totalL / totalW) : 0.0;
-      isLoading = false;
-    });
-  }
-
-  Widget buildTopicProgressCard(TopicVoca topic) {
-    final progress = topic.percent / 100.0;
-    final Color progressColor = progress == 0
-        ? Colors.grey[400]!
-        : progress < 0.5
-            ? Colors.orange[600]!
-            : progress < 1.0
-                ? Colors.blue[600]!
-                : Colors.green[600]!;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    topic.image,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        topic.name,
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${topic.length} từ',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Badge % với background màu đậm
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: progressColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: progressColor.withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    '${topic.percent}%',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _refreshProgress() async {
     setState(() {
       isLoading = true;
     });
-    await loadProgressData();
+
+    await _progressService.loadAllProgress();
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
-    
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : RefreshIndicator(
-                onRefresh: _refreshProgress,
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
-                children: [
-                  // Header with overall progress
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.all(16),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue[400]!, Colors.blue[600]!],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
                       children: [
                         Text(
-                          'Tiến độ tổng quát',
+                          'Tiến trình học',
                           style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 120,
-                              height: 120,
-                              child: CircularProgressIndicator(
-                                value: overallProgress,
-                                strokeWidth: 12,
-                                backgroundColor: Colors.white.withOpacity(0.3),
-                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '${(overallProgress * 100).round()}%',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  '$totalLearned/$totalWords từ',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          overallProgress == 0
-                              ? 'Bắt đầu học ngay nào! 📚'
-                              : overallProgress < 0.5
-                                  ? 'Đang tiến bộ tốt! 💪'
-                                  : overallProgress < 1.0
-                                      ? 'Sắp hoàn thành rồi! 🚀'
-                                      : 'Xuất sắc! Bạn đã học hết! 🎉',
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Title
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Chi tiết theo chủ đề',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
                         ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: loadProgressData,
+                          icon: Icon(Icons.refresh, color: Colors.blue[700]),
+                          tooltip: 'Làm mới',
+                        ),
                       ],
                     ),
-                  ),
 
-                  // Topic list
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      itemCount: topics.length,
-                      itemBuilder: (context, index) => buildTopicProgressCard(topics[index]),
+                    const SizedBox(height: 24),
+
+                    // Tiến độ tổng quát
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.blue[600]!, Colors.blue[800]!],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Tiến độ tổng quát',
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          
+                          // Circular progress
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 120,
+                                height: 120,
+                                child: CircularProgressIndicator(
+                                  value: _progressService.overallProgress / 100,
+                                  strokeWidth: 8,
+                                  backgroundColor: Colors.white.withOpacity(0.3),
+                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    '${_progressService.overallProgress}%',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_progressService.learnedWords}/${_progressService.totalWords} từ',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: Colors.white.withOpacity(0.9),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Motivational message
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _getMotivationalMessage(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _getMotivationalEmoji(),
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 32),
+
+                    // Chi tiết theo chủ đề
+                    Text(
+                      'Chi tiết theo chủ đề',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // List of topics
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: LocalDatabaseService.getTopics(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'Chưa có dữ liệu',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: snapshot.data!.map((topic) {
+                            final topicName = topic['name'] as String;
+                            final topicKey = topic['topic'] as String;
+                            final progress = _progressService.getTopicProgress(topicKey);
+                            final totalWords = topic['length'] as int? ?? 0;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  // Topic image
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.asset(
+                                      topic['image'] as String? ?? 'assets/images/vocabulary.png',
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  
+                                  const SizedBox(width: 16),
+                                  
+                                  // Topic info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          topicName,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '$totalWords từ',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  // Progress badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getProgressColor(progress),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Text(
+                                      '$progress%',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
-            ),
       ),
     );
   }
-}
 
+  Color _getProgressColor(int progress) {
+    if (progress == 0) return Colors.grey[400]!;
+    if (progress < 30) return Colors.orange[600]!;
+    if (progress < 70) return Colors.blue[600]!;
+    return Colors.green[600]!;
+  }
+
+  String _getMotivationalMessage() {
+    final progress = _progressService.overallProgress;
+    if (progress == 0) return 'Bắt đầu hành trình học tập';
+    if (progress < 25) return 'Đang tiến bộ tốt';
+    if (progress < 50) return 'Tiến bộ ổn định';
+    if (progress < 75) return 'Gần hoàn thành';
+    if (progress < 100) return 'Sắp hoàn thành';
+    return 'Hoàn thành xuất sắc';
+  }
+
+  String _getMotivationalEmoji() {
+    final progress = _progressService.overallProgress;
+    if (progress == 0) return '🚀';
+    if (progress < 25) return '💪';
+    if (progress < 50) return '🔥';
+    if (progress < 75) return '⭐';
+    if (progress < 100) return '🎯';
+    return '🏆';
+  }
+}

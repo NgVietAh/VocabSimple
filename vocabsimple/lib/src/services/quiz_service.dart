@@ -4,27 +4,31 @@ import 'package:vocabsimple/src/services/local_database_service.dart';
 
 class QuizService {
   /// Tạo quiz từ các từ đã học trong một chủ đề
-  static Future<List<Quiz>> generateQuizFromTopic(String topic, {int count = 10}) async {
+  static Future<List<Quiz>> generateQuizFromTopic(
+    String topic, {
+    int count = 10,
+  }) async {
     final words = await LocalDatabaseService.getWordsByTopic(topic);
-    
+
     // Lọc các từ đã học
     final learnedWords = words.where((w) => w['isLearned'] == 1).toList();
-    
+
     if (learnedWords.isEmpty) {
-      print('⚠️ Chưa có từ nào được học trong chủ đề "$topic"');
       return [];
     }
 
     // Shuffle và lấy số lượng cần
     learnedWords.shuffle();
-    final selectedWords = learnedWords.take(min(count, learnedWords.length)).toList();
+    final selectedWords = learnedWords
+        .take(min(count, learnedWords.length))
+        .toList();
 
     List<Quiz> quizzes = [];
 
     for (var word in selectedWords) {
       // Random loại câu hỏi: 50% multiple choice, 50% fill blank
       final random = Random().nextDouble();
-      
+
       if (random < 0.5) {
         // Multiple choice: Cho nghĩa tiếng Việt, chọn từ tiếng Anh
         quizzes.add(_createMultipleChoiceQuiz(word, words));
@@ -35,20 +39,20 @@ class QuizService {
     }
 
     quizzes.shuffle();
-    print('✅ Đã tạo ${quizzes.length} câu hỏi từ chủ đề "$topic"');
     return quizzes;
   }
 
   /// Multiple choice: Cho nghĩa tiếng Việt, chọn từ tiếng Anh đúng
-  static Quiz _createMultipleChoiceQuiz(Map<String, dynamic> word, List<Map<String, dynamic>> allWords) {
+  static Quiz _createMultipleChoiceQuiz(
+    Map<String, dynamic> word,
+    List<Map<String, dynamic>> allWords,
+  ) {
     final correctAnswer = word['name'] as String;
     final question = word['translate'] as String;
 
     // Lấy 3 từ sai khác
-    final wrongWords = allWords
-        .where((w) => w['name'] != correctAnswer)
-        .toList()
-      ..shuffle();
+    final wrongWords =
+        allWords.where((w) => w['name'] != correctAnswer).toList()..shuffle();
 
     final options = [
       correctAnswer,
@@ -92,18 +96,19 @@ class QuizService {
     }
 
     if (allLearnedWords.isEmpty) {
-      print('⚠️ Chưa học từ nào');
       return [];
     }
 
     allLearnedWords.shuffle();
-    final selectedWords = allLearnedWords.take(min(count, allLearnedWords.length)).toList();
+    final selectedWords = allLearnedWords
+        .take(min(count, allLearnedWords.length))
+        .toList();
 
     List<Quiz> quizzes = [];
 
     for (var word in selectedWords) {
       final random = Random().nextDouble();
-      
+
       if (random < 0.5) {
         quizzes.add(_createMultipleChoiceQuiz(word, allLearnedWords));
       } else {
@@ -112,8 +117,6 @@ class QuizService {
     }
 
     quizzes.shuffle();
-    print('✅ Đã tạo ${quizzes.length} câu hỏi tổng hợp');
     return quizzes;
   }
 }
-

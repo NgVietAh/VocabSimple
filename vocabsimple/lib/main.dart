@@ -7,24 +7,41 @@ import 'package:vocabsimple/src/services/data_loader.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  print(' ...');
+
   await Firebase.initializeApp(); // Khởi tạo Firebase
+  print(' OK');
+
   await LocalDatabaseService.init(); // Khởi tạo SQLite
+  print(' OK');
+
   await DataLoader.loadVocabularyFromJson(); // Đổ dữ liệu từ JSON vào SQLite nếu cần
-  
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: const PageLogin(),
-    onGenerateRoute: (settings) {
-      if (settings.name == '/flashcard') {
-        final args = settings.arguments as Map<String, dynamic>;
-        return MaterialPageRoute(
-          builder: (context) => FlashcardPage(
-            topic: args['topic'],
-            name: args['name'],
-          ),
-        );
-      }
-      return null;
-    },
-  ));
+  print(' OK');
+
+  // Kiểm tra số chủ đề trong database
+  final topics = await LocalDatabaseService.getTopics();
+  print(' Có ${topics.length} chủ đề ');
+  for (var topic in topics) {
+    print('  - ${topic['name']} (${topic['topic']})');
+  }
+
+  print('sẵn sàng!\n');
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const PageLogin(),
+      onGenerateRoute: (settings) {
+        if (settings.name == '/flashcard') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) =>
+                FlashcardPage(topic: args['topic'], name: args['name']),
+          );
+        }
+        return null;
+      },
+    ),
+  );
 }
