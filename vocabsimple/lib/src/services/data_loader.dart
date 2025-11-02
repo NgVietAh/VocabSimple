@@ -11,7 +11,7 @@ class DataLoader {
       // Kiểm tra xem có dữ liệu trùng lặp không
       final uniqueTopics = <String>{};
       bool hasDuplicates = false;
-      
+
       for (var topic in existingTopics) {
         final topicName = topic['topic'] as String;
         if (uniqueTopics.contains(topicName)) {
@@ -20,19 +20,16 @@ class DataLoader {
         }
         uniqueTopics.add(topicName);
       }
-      
+
       if (hasDuplicates) {
-        print('⚠️ Phát hiện chủ đề trùng lặp, đang xóa và load lại...');
         await LocalDatabaseService.clearAll();
-      } else {
-        print('✓ Database đã có ${existingTopics.length} chủ đề, bỏ qua việc load JSON');
         return;
       }
     }
 
-    print('🔄 Đang load dữ liệu từ vocabulary.json vào database...');
-
-    final jsonString = await rootBundle.loadString('assets/data/vocabulary.json');
+    final jsonString = await rootBundle.loadString(
+      'assets/data/vocabulary.json',
+    );
     final Map<String, dynamic> data = json.decode(jsonString);
 
     int topicCount = 0;
@@ -67,15 +64,11 @@ class DataLoader {
         wordCount++;
       }
     }
-    
-    print('✅ Đã load xong: $topicCount chủ đề, $wordCount từ vựng');
   }
 
   /// Reset toàn bộ database và load lại dữ liệu
   static Future<void> resetAndReload() async {
-    print('🔄 Đang reset database...');
     await LocalDatabaseService.clearAll();
     await loadVocabularyFromJson();
-    print('✅ Database đã được reset và load lại!');
   }
 }
