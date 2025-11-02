@@ -24,10 +24,10 @@ class _VocaMainPageState extends State<VocaMainPage> {
 
   Future<void> loadTopicsFromSQLite() async {
     print('🔄 Đang load danh sách chủ đề...');
-    
+
     // Load tiến trình từ ProgressService
     await _progressService.loadAllProgress();
-    
+
     final rawTopics = await LocalDatabaseService.getTopics();
     final topicList = rawTopics.map((e) {
       final topic = TopicVoca.fromMap(e['topic'], e);
@@ -91,25 +91,22 @@ class _VocaMainPageState extends State<VocaMainPage> {
     final Color progressColor = progress == 0
         ? Colors.grey[400]!
         : progress < 0.5
-            ? Colors.orange[600]!
-            : progress < 1.0
-                ? Colors.blue[600]!
-                : Colors.green[600]!;
+        ? Colors.orange[600]!
+        : progress < 1.0
+        ? Colors.blue[600]!
+        : Colors.green[600]!;
 
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
           context,
           '/flashcard',
-          arguments: {
-            'topic': item.topic,
-            'name': item.name,
-          },
+          arguments: {'topic': item.topic, 'name': item.name},
         ).then((_) async {
           // Refresh khi quay lại từ flashcard
-          print('⬅️ Quay lại từ flashcard - Đang refresh...');
+          print('Đang refresh...');
           await loadTopicsFromSQLite();
-          print('✅ Refresh hoàn tất!');
+          print(' hoàn tất!');
         });
       },
       child: Container(
@@ -161,7 +158,10 @@ class _VocaMainPageState extends State<VocaMainPage> {
                     children: [
                       // Badge % với background màu đậm
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: progressColor,
                           borderRadius: BorderRadius.circular(16),
@@ -183,7 +183,11 @@ class _VocaMainPageState extends State<VocaMainPage> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.grey[400],
+                      ),
                     ],
                   ),
                 ],
