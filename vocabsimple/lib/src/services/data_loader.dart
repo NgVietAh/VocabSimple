@@ -22,10 +22,16 @@ class DataLoader {
       }
 
       if (hasDuplicates) {
+        print(' ...');
         await LocalDatabaseService.clearAll();
+        // Không return ở đây, tiếp tục load lại dữ liệu
+      } else {
+        print('Database đã có ${existingTopics.length} chủ đề');
         return;
       }
     }
+
+    print(' Đang load dữ liệu từ vocabulary.json vào database...');
 
     final jsonString = await rootBundle.loadString(
       'assets/data/vocabulary.json',
@@ -64,6 +70,8 @@ class DataLoader {
         wordCount++;
       }
     }
+
+    print(' $topicCount chủ đề, $wordCount từ vựng');
   }
 
   /// Reset toàn bộ database và load lại dữ liệu
