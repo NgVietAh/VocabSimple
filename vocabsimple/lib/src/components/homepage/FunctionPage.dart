@@ -89,7 +89,7 @@ class FunctionPage extends StatelessWidget {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      '✅ Database đã được reset!',
+                                      'Database đã được reset!',
                                       style: GoogleFonts.inter(),
                                     ),
                                     backgroundColor: Colors.green,
