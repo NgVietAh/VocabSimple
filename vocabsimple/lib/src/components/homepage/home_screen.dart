@@ -34,10 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -53,14 +50,29 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Colors.blue[700],
         unselectedItemColor: Colors.grey[500],
         type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12),
+        selectedLabelStyle: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
         unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
         elevation: 8,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Trang chủ'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Tiến trình'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_rounded), label: 'Thông báo'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Tài khoản'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_rounded),
+            label: 'Trang chủ',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart_rounded),
+            label: 'Tiến trình',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_rounded),
+            label: 'Thông báo',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded),
+            label: 'Tài khoản',
+          ),
         ],
       ),
     );

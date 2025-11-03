@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vocabsimple/src/components/model/topic_voca.dart';
 import 'package:vocabsimple/src/services/local_database_service.dart';
+import 'package:vocabsimple/src/services/progress_service.dart';
 
 class VocaMainPage extends StatefulWidget {
   const VocaMainPage({super.key});
@@ -10,9 +11,10 @@ class VocaMainPage extends StatefulWidget {
   State<VocaMainPage> createState() => _VocaMainPageState();
 }
 
-class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
+class _VocaMainPageState extends State<VocaMainPage> {
   List<TopicVoca> items = [];
   bool isLoading = true;
+  final ProgressService _progressService = ProgressService();
 
   @override
   void initState() {
@@ -20,22 +22,19 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
     loadTopicsFromSQLite();
   }
 
-  @override
-  void didPopNext() {
-    // Được gọi khi quay lại trang này từ trang khác
-    print('🔄 Quay lại trang Chủ đề - Đang reload...');
-    loadTopicsFromSQLite();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   Future<void> loadTopicsFromSQLite() async {
     print('🔄 Đang load danh sách chủ đề...');
+
+    // Load tiến trình từ ProgressService
+    await _progressService.loadAllProgress();
+
     final rawTopics = await LocalDatabaseService.getTopics();
-    final topicList = rawTopics.map((e) => TopicVoca.fromMap(e['topic'], e)).toList();
+    final topicList = rawTopics.map((e) {
+      final topic = TopicVoca.fromMap(e['topic'], e);
+      // Cập nhật percent từ ProgressService
+      topic.percent = _progressService.getTopicProgress(e['topic']);
+      return topic;
+    }).toList();
 
     print('📚 Đã load ${topicList.length} chủ đề:');
     for (var topic in topicList) {
@@ -57,6 +56,22 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
     await loadTopicsFromSQLite();
   }
 
+  // Method để force refresh từ bên ngoài
+  void forceRefresh() {
+    if (mounted) {
+      loadTopicsFromSQLite();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh khi quay lại từ màn hình khác
+    if (!isLoading) {
+      loadTopicsFromSQLite();
+    }
+  }
+
   Widget buildImage(String path) {
     if (path.startsWith('http')) {
       return ClipRRect(
@@ -76,25 +91,22 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
     final Color progressColor = progress == 0
         ? Colors.grey[400]!
         : progress < 0.5
-            ? Colors.orange[600]!
-            : progress < 1.0
-                ? Colors.blue[600]!
-                : Colors.green[600]!;
+        ? Colors.orange[600]!
+        : progress < 1.0
+        ? Colors.blue[600]!
+        : Colors.green[600]!;
 
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
           context,
           '/flashcard',
-          arguments: {
-            'topic': item.topic,
-            'name': item.name,
-          },
+          arguments: {'topic': item.topic, 'name': item.name},
         ).then((_) async {
           // Refresh khi quay lại từ flashcard
-          print('⬅️ Quay lại từ flashcard - Đang refresh...');
+          print('Đang refresh...');
           await loadTopicsFromSQLite();
-          print('✅ Refresh hoàn tất!');
+          print(' hoàn tất!');
         });
       },
       child: Container(
@@ -146,7 +158,10 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
                     children: [
                       // Badge % với background màu đậm
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: progressColor,
                           borderRadius: BorderRadius.circular(16),
@@ -168,7 +183,11 @@ class _VocaMainPageState extends State<VocaMainPage> with RouteAware {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.grey[400],
+                      ),
                     ],
                   ),
                 ],

@@ -8,14 +8,34 @@ class DataLoader {
     // Kiểm tra xem đã có dữ liệu chưa
     final existingTopics = await LocalDatabaseService.getTopics();
     if (existingTopics.isNotEmpty) {
-      // Đã có dữ liệu rồi, không cần load lại
-      print('✓ Database đã có ${existingTopics.length} chủ đề, bỏ qua việc load JSON');
-      return;
+      // Kiểm tra xem có dữ liệu trùng lặp không
+      final uniqueTopics = <String>{};
+      bool hasDuplicates = false;
+
+      for (var topic in existingTopics) {
+        final topicName = topic['topic'] as String;
+        if (uniqueTopics.contains(topicName)) {
+          hasDuplicates = true;
+          break;
+        }
+        uniqueTopics.add(topicName);
+      }
+
+      if (hasDuplicates) {
+        print(' ...');
+        await LocalDatabaseService.clearAll();
+        // Không return ở đây, tiếp tục load lại dữ liệu
+      } else {
+        print('Database đã có ${existingTopics.length} chủ đề');
+        return;
+      }
     }
 
-    print('🔄 Đang load dữ liệu từ vocabulary.json vào database...');
+    print(' Đang load dữ liệu từ vocabulary.json vào database...');
 
-    final jsonString = await rootBundle.loadString('assets/data/vocabulary.json');
+    final jsonString = await rootBundle.loadString(
+      'assets/data/vocabulary.json',
+    );
     final Map<String, dynamic> data = json.decode(jsonString);
 
     int topicCount = 0;
@@ -50,7 +70,13 @@ class DataLoader {
         wordCount++;
       }
     }
-    
-    print('✅ Đã load xong: $topicCount chủ đề, $wordCount từ vựng');
+
+    print(' $topicCount chủ đề, $wordCount từ vựng');
+  }
+
+  /// Reset toàn bộ database và load lại dữ liệu
+  static Future<void> resetAndReload() async {
+    await LocalDatabaseService.clearAll();
+    await loadVocabularyFromJson();
   }
 }
