@@ -120,7 +120,7 @@ class _ProgressPageState extends State<ProgressPage> with AutomaticKeepAliveClie
                     ],
                   ),
                 ),
-                // Badge % với background màu đậm
+                // Badge % với background màu đậm và nhạt 
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
