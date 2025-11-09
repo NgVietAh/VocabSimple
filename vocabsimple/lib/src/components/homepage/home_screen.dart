@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vocabsimple/src/components/homepage/FunctionPage.dart';
 import 'package:vocabsimple/src/components/homepage/progress_page.dart';
+import 'package:vocabsimple/src/components/homepage/notification_page.dart';
 import 'package:vocabsimple/src/components/user/ProfileSetting.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,12 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _pages = [
       FunctionPage(),
       ProgressPage(key: _progressPageKey),
-      Center(
-        child: Text(
-          'Thông báo',
-          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600),
-        ),
-      ), // Placeholder
+      const NotificationPage(),
       ProfileSetting(),
     ];
   }

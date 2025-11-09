@@ -139,4 +139,24 @@ class LocalDatabaseService {
     await _db!.delete('topics');
     await _db!.delete('words');
   }
+
+  /// Tìm kiếm từ vựng
+  static Future<List<Map<String, dynamic>>> searchWords(String query) async {
+    final lowerQuery = query.toLowerCase();
+
+    // Tìm kiếm trong cả tên tiếng Anh và nghĩa tiếng Việt
+    final results = await _db!.rawQuery(
+      '''
+      SELECT w.*, t.name as topic_name
+      FROM words w
+      LEFT JOIN topics t ON w.topic = t.topic
+      WHERE LOWER(w.name) LIKE ? OR LOWER(w.translate) LIKE ?
+      ORDER BY w.name ASC
+      LIMIT 50
+    ''',
+      ['%$lowerQuery%', '%$lowerQuery%'],
+    );
+
+    return results;
+  }
 }
