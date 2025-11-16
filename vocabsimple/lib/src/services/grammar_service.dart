@@ -14,10 +14,8 @@ class GrammarService {
         grammarList.add(Grammar.fromJson(value));
       });
 
-      print('✅ Đã load ${grammarList.length} điểm ngữ pháp');
       return grammarList;
     } catch (e) {
-      print('❌ Lỗi load grammar: $e');
       return [];
     }
   }

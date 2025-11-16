@@ -172,7 +172,7 @@ class _GrammarListPageState extends State<GrammarListPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Học ngữ pháp',
+          'Learn Grammar',
           style: GoogleFonts.poppins(
             color: Colors.black87,
             fontSize: 20,
