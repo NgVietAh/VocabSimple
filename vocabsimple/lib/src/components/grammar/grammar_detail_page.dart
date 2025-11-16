@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vocabsimple/src/components/model/grammar.dart';
+import 'package:vocabsimple/src/components/grammar/grammar_study_page.dart';
 
 class GrammarDetailPage extends StatelessWidget {
   final Grammar grammar;
@@ -127,7 +128,10 @@ class GrammarDetailPage extends StatelessWidget {
                           Expanded(
                             child: Text(
                               entry.value,
-                              style: GoogleFonts.inter(fontSize: 14, height: 1.5),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                height: 1.5,
+                              ),
                             ),
                           ),
                         ],
@@ -160,7 +164,11 @@ class GrammarDetailPage extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.check_circle, size: 16, color: Colors.green[600]),
+                                Icon(
+                                  Icons.check_circle,
+                                  size: 16,
+                                  color: Colors.green[600],
+                                ),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
@@ -213,7 +221,10 @@ class GrammarDetailPage extends StatelessWidget {
                           Expanded(
                             child: Text(
                               note,
-                              style: GoogleFonts.inter(fontSize: 14, height: 1.5),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                height: 1.5,
+                              ),
                             ),
                           ),
                         ],
@@ -224,6 +235,41 @@ class GrammarDetailPage extends StatelessWidget {
               ),
 
               const SizedBox(height: 30),
+
+              // Study Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            GrammarStudyPage(grammar: grammar),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.school),
+                  label: Text(
+                    'Học ngữ pháp',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple[600],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -231,7 +277,12 @@ class GrammarDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(String title, IconData icon, Color color, Widget content) {
+  Widget _buildSection(
+    String title,
+    IconData icon,
+    Color color,
+    Widget content,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -277,4 +328,3 @@ class GrammarDetailPage extends StatelessWidget {
     );
   }
 }
-

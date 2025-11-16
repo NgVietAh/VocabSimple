@@ -19,10 +19,11 @@ class _FlashcardPageState extends State<FlashcardPage> {
   final List<Map<String, dynamic>> words = [];
   final FlutterTts flutterTts = FlutterTts();
   final PageController _pageController = PageController();
-<<<<<<< HEAD
+
   final ProgressService _progressService = ProgressService();
-=======
+
   bool isLoading = true;
+  int currentIndex = 0;
   @override
   void initState() {
     super.initState();
@@ -84,46 +85,46 @@ class _FlashcardPageState extends State<FlashcardPage> {
   Future<void> markWordAsLearned(Map<String, dynamic> word) async {
     if (word['isLearned'] == 1) return; // Đã học rồi
 
-<<<<<<< HEAD
     // Sử dụng ProgressService để cập nhật tiến trình
     await _progressService.markWordAsLearned(widget.topic, word['name']);
-=======
+
     // Cập nhật trong database
     await LocalDatabaseService.markWordAsLearned(word['name']);
 
-    // Cập nhật trong danh sách local
-<<<<<<< HEAD
     // Lấy tiến trình mới từ ProgressService
     final newProgress = _progressService.getTopicProgress(widget.topic);
 
-    print(' Cập nhật tiến độ: ${widget.topic} - $newProgress%');
+    print('Cập nhật tiến độ: ${widget.topic} - $newProgress%');
 
-    // Force refresh UI để hiển thị tiến độ mới
-    setState(() {
-      // Trigger rebuild để hiển thị tiến độ mới
-    });
-=======
-    final learnedCount = await LocalDatabaseService.countLearnedWords(widget.topic);
+    final learnedCount = await LocalDatabaseService.countLearnedWords(
+      widget.topic,
+    );
     final percent = ((learnedCount / words.length) * 100).round();
     await LocalDatabaseService.updateTopicPercent(widget.topic, percent);
 
-    print('📊 Cập nhật tiến độ: ${widget.topic} - $learnedCount/${words.length} từ = $percent%');
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
+    print(
+      'Cập nhật tiến độ: ${widget.topic} - $learnedCount/${words.length} từ = $percent%',
+    );
+
+    // Force refresh UI để hiển thị tiến độ mới
+    setState(() {
+      word['isLearned'] = 1;
+    });
 
     // Hiển thị thông báo
     if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Đã đánh dấu từ "${word['name']}" là đã học!',
             style: GoogleFonts.inter(fontWeight: FontWeight.w600),
           ),
           backgroundColor: Colors.green[600],
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
-<<<<<<< HEAD
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-=======
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
         ),
       );
     }
@@ -131,21 +132,13 @@ class _FlashcardPageState extends State<FlashcardPage> {
 
   Widget buildCard(Map<String, dynamic> word) {
     final isLearned = word['isLearned'] == 1;
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
     return FlipCard(
       direction: FlipDirection.HORIZONTAL,
       front: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-<<<<<<< HEAD
             colors: isLearned
-=======
-            colors: isLearned 
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                 ? [Colors.green[300]!, Colors.green[500]!]
                 : [Colors.blue[300]!, Colors.blue[500]!],
             begin: Alignment.topLeft,
@@ -168,14 +161,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 top: 16,
                 right: 16,
                 child: Container(
-<<<<<<< HEAD
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 6,
                   ),
-=======
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -183,15 +172,11 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-<<<<<<< HEAD
                       Icon(
                         Icons.check_circle,
                         color: Colors.green[600],
                         size: 16,
                       ),
-=======
-                      Icon(Icons.check_circle, color: Colors.green[600], size: 16),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                       const SizedBox(width: 4),
                       Text(
                         'Đã học',
@@ -205,11 +190,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   ),
                 ),
               ),
-<<<<<<< HEAD
-
-=======
-            
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
             // Main content
             Center(
               child: Column(
@@ -225,14 +205,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   ),
                   const SizedBox(height: 16),
                   Container(
-<<<<<<< HEAD
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 8,
                     ),
-=======
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(20),
@@ -254,11 +230,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
       back: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-<<<<<<< HEAD
             colors: isLearned
-=======
-            colors: isLearned 
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                 ? [Colors.green[300]!, Colors.green[500]!]
                 : [Colors.purple[300]!, Colors.purple[500]!],
             begin: Alignment.topLeft,
@@ -267,13 +239,9 @@ class _FlashcardPageState extends State<FlashcardPage> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-<<<<<<< HEAD
               color: (isLearned ? Colors.green : Colors.purple).withOpacity(
                 0.3,
               ),
-=======
-              color: (isLearned ? Colors.green : Colors.purple).withOpacity(0.3),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -301,16 +269,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 ),
               ),
               const SizedBox(height: 24),
-<<<<<<< HEAD
-
-=======
-              
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
               // Phát âm button
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-<<<<<<< HEAD
                   foregroundColor: isLearned
                       ? Colors.green[700]
                       : Colors.purple[700],
@@ -318,10 +280,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                     horizontal: 24,
                     vertical: 12,
                   ),
-=======
-                  foregroundColor: isLearned ? Colors.green[700] : Colors.purple[700],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
@@ -336,29 +294,19 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 ),
                 onPressed: () => flutterTts.speak(word['name']),
               ),
-<<<<<<< HEAD
 
               const SizedBox(height: 12),
 
-=======
-              
-              const SizedBox(height: 12),
-              
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
               // Đã học button
               if (!isLearned)
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.purple[700],
-<<<<<<< HEAD
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 12,
                     ),
-=======
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
@@ -375,14 +323,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 )
               else
                 Container(
-<<<<<<< HEAD
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,
                   ),
-=======
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(25),
@@ -437,21 +381,16 @@ class _FlashcardPageState extends State<FlashcardPage> {
               children: [
                 // Progress indicator với thanh bar
                 Padding(
-<<<<<<< HEAD
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 12.0,
                   ),
-=======
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                   child: Column(
                     children: [
                       // Số từ hiện tại
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-<<<<<<< HEAD
                           Expanded(
                             child: Text(
                               'Từ ${currentIndex + 1} / ${words.length}',
@@ -467,18 +406,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                               horizontal: 10,
                               vertical: 4,
                             ),
-=======
-                          Text(
-                            'Từ ${currentIndex + 1} / ${words.length}',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                             decoration: BoxDecoration(
                               color: _getProgressColor(),
                               borderRadius: BorderRadius.circular(12),
@@ -486,11 +413,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
                             child: Text(
                               '${_getLearnedPercent()}%',
                               style: GoogleFonts.inter(
-<<<<<<< HEAD
                                 fontSize: 12,
-=======
-                                fontSize: 14,
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -501,7 +424,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                       const SizedBox(height: 8),
                       // Progress bar
                       ClipRRect(
-<<<<<<< HEAD
                         borderRadius: BorderRadius.circular(8),
                         child: LinearProgressIndicator(
                           value: _getLearnedPercent() / 100,
@@ -510,14 +432,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                           valueColor: AlwaysStoppedAnimation<Color>(
                             _getProgressColor(),
                           ),
-=======
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: _getLearnedPercent() / 100,
-                          minHeight: 12,
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(_getProgressColor()),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -525,7 +439,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-<<<<<<< HEAD
                           Expanded(
                             child: Text(
                               'Đã học: ${_countLearnedWords()} / ${words.length} từ',
@@ -534,25 +447,13 @@ class _FlashcardPageState extends State<FlashcardPage> {
                                 color: _getProgressColor(),
                                 fontWeight: FontWeight.w600,
                               ),
-=======
-                          Text(
-                            'Đã học: ${_countLearnedWords()} / ${words.length} từ',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: _getProgressColor(),
-                              fontWeight: FontWeight.w600,
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                             ),
                           ),
                           if (_countLearnedWords() < words.length)
                             Text(
                               'Còn lại: ${words.length - _countLearnedWords()} từ',
                               style: GoogleFonts.inter(
-<<<<<<< HEAD
                                 fontSize: 10,
-=======
-                                fontSize: 11,
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                                 color: Colors.grey[500],
                               ),
                             ),
@@ -572,21 +473,16 @@ class _FlashcardPageState extends State<FlashcardPage> {
                       });
                     },
                     itemBuilder: (context, index) => Padding(
-<<<<<<< HEAD
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16.0,
                         vertical: 8.0,
                       ),
-=======
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
->>>>>>> 4a4c0845ae00b0d61fd97755a319f1f746c7960c
                       child: buildCard(words[index]),
                     ),
                   ),
                 ),
                 // Navigation buttons
                 Padding(
-<<<<<<< HEAD
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 12.0,
@@ -633,9 +529,14 @@ class _FlashcardPageState extends State<FlashcardPage> {
                       ElevatedButton.icon(
                         onPressed: currentIndex > 0 ? goToPreviousWord : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: currentIndex > 0 ? Colors.blue[600] : Colors.grey[300],
+                          backgroundColor: currentIndex > 0
+                              ? Colors.blue[600]
+                              : Colors.grey[300],
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -650,7 +551,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
                           ),
                         ),
                       ),
-                      
+
                       // Dots indicator
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -664,8 +565,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                                   margin: const EdgeInsets.symmetric(
                                     horizontal: 3,
                                   ),
-
-                                  margin: const EdgeInsets.symmetric(horizontal: 3),
                                   child: Icon(
                                     Icons.more_horiz,
                                     size: 16,
@@ -690,7 +589,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                           },
                         ),
                       ),
-<<<<<<< HEAD
 
                       const SizedBox(height: 12),
 
@@ -769,37 +667,12 @@ class _FlashcardPageState extends State<FlashcardPage> {
                             ),
                           ),
                         ],
-                      
-                      // Next button
-                      ElevatedButton.icon(
-                        onPressed: currentIndex < words.length - 1 ? goToNextWord : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: currentIndex < words.length - 1 
-                              ? Colors.blue[600] 
-                              : Colors.grey[300],
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: currentIndex < words.length - 1 ? 4 : 0,
-                        ),
-                        icon: Text(
-                          'Sau',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        label: const Icon(Icons.arrow_forward_ios, size: 18),
-
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-              
     );
   }
 }

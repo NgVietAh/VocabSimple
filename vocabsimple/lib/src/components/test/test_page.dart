@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vocabsimple/src/components/model/quiz.dart';
 import 'package:vocabsimple/src/services/quiz_service.dart';
 import 'package:vocabsimple/src/components/test/test_result_page.dart';
+import 'package:vocabsimple/src/services/local_database_service.dart';
 
 class TestPage extends StatefulWidget {
   final String testTitle;
@@ -107,7 +108,7 @@ class _TestPageState extends State<TestPage> {
     }
   }
 
-  void finishTest() {
+  void finishTest() async {
     final endTime = DateTime.now();
     final timeTaken = endTime.difference(startTime!);
 
@@ -126,6 +127,19 @@ class _TestPageState extends State<TestPage> {
       score: score,
       timeTaken: timeTaken,
     );
+
+    // Lưu kết quả vào database
+    await LocalDatabaseService.saveTestResult(
+      testName: widget.testTitle,
+      totalQuestions: quizzes.length,
+      correctAnswers: correct,
+      wrongAnswers: wrong,
+      skippedAnswers: skipped,
+      score: score,
+      timeTakenSeconds: timeTaken.inSeconds,
+    );
+
+    if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
