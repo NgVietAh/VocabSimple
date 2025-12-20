@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vocabsimple/src/services/progress_service.dart';
 import 'package:vocabsimple/src/services/local_database_service.dart';
+import 'package:vocabsimple/src/services/grammar_service.dart';
+import 'package:vocabsimple/src/components/model/grammar.dart';
 
 class ProgressPage extends StatefulWidget {
   const ProgressPage({super.key});
@@ -345,77 +347,331 @@ class _ProgressPageState extends State<ProgressPage>
 
   // Tab Ngữ pháp
   Widget _buildGrammarTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Coming soon card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.purple[600]!, Colors.purple[800]!],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+    return FutureBuilder<List<Grammar>>(
+      future: GrammarService.loadGrammar(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final grammarList = snapshot.data ?? [];
+        _progressService.setTotalGrammarCount(grammarList.length);
+        final completedCount = _progressService.completedGrammarCount;
+        final progressPercent = _progressService.getGrammarProgressPercent();
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Progress card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.purple[600]!, Colors.purple[800]!],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.purple.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Tiến độ Ngữ pháp',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Theo dõi quá trình học ngữ pháp của bạn',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Circular progress
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: CircularProgressIndicator(
+                            value: progressPercent / 100,
+                            strokeWidth: 8,
+                            backgroundColor: Colors.white.withOpacity(0.3),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              '$progressPercent%',
+                              style: GoogleFonts.poppins(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '$completedCount/${grammarList.length} bài học',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Motivational message for grammar
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _getGrammarMotivationalMessage(progressPercent),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _getMotivationalEmoji(),
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.purple.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
+
+              const SizedBox(height: 24),
+
+              Text(
+                'Danh sách bài học',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-              ],
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.book_outlined, size: 64, color: Colors.white),
-                const SizedBox(height: 16),
-                Text(
-                  'Tiến độ Ngữ pháp',
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              ),
+
+              const SizedBox(height: 16),
+
+              // List of grammar topics
+              if (grammarList.isEmpty)
+                Center(
+                  child: Text(
+                    'Chưa có dữ liệu ngữ pháp',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
                   ),
+                )
+              else
+                Column(
+                  children: grammarList.map((grammar) {
+                    final isCompleted =
+                        _progressService
+                            .grammarProgress['grammar_${grammar.id}'] ??
+                        false;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: isCompleted
+                            ? Border.all(color: Colors.green[300]!, width: 2)
+                            : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          // Icon
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: isCompleted
+                                  ? Colors.green[100]
+                                  : Colors.purple[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              isCompleted
+                                  ? Icons.check_circle
+                                  : Icons.book_outlined,
+                              color: isCompleted
+                                  ? Colors.green[700]
+                                  : Colors.purple[700],
+                              size: 28,
+                            ),
+                          ),
+
+                          const SizedBox(width: 16),
+
+                          // Grammar info
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  grammar.title,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _getLevelColorForGrammar(
+                                          grammar.level,
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        _getLevelTextForGrammar(grammar.level),
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${grammar.examples.length} ví dụ',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Status badge
+                          if (isCompleted)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green[500],
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.check,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Hoàn thành',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Theo dõi quá trình học ngữ pháp của bạn',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  '0/10 bài học',
-                  style: GoogleFonts.poppins(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            'Danh sách bài học',
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildGrammarPlaceholder(),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  Color _getLevelColorForGrammar(String level) {
+    switch (level) {
+      case 'basic':
+        return Colors.green[600]!;
+      case 'intermediate':
+        return Colors.orange[600]!;
+      case 'advanced':
+        return Colors.red[600]!;
+      default:
+        return Colors.grey[600]!;
+    }
+  }
+
+  String _getLevelTextForGrammar(String level) {
+    switch (level) {
+      case 'basic':
+        return 'Cơ bản';
+      case 'intermediate':
+        return 'Trung cấp';
+      case 'advanced':
+        return 'Nâng cao';
+      default:
+        return 'Khác';
+    }
+  }
+
+  String _getGrammarMotivationalMessage(int percent) {
+    if (percent == 0) {
+      return 'Bắt đầu học ngữ pháp ngay!';
+    } else if (percent < 30) {
+      return 'Khởi đầu tốt! Tiếp tục nào!';
+    } else if (percent < 60) {
+      return 'Đang tiến bộ rất tốt!';
+    } else if (percent < 100) {
+      return 'Sắp hoàn thành rồi!';
+    } else {
+      return 'Hoàn thành xuất sắc!';
+    }
   }
 
   // Tab Kiểm tra
@@ -680,37 +936,6 @@ class _ProgressPageState extends State<ProgressPage>
     if (score >= 70) return Colors.orange[600]!;
     if (score >= 60) return Colors.amber[600]!;
     return Colors.red[600]!;
-  }
-
-  Widget _buildGrammarPlaceholder() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.hourglass_empty, size: 48, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'Chưa có dữ liệu ngữ pháp',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Hoàn thành các bài học ngữ pháp để xem tiến độ',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildTestPlaceholder() {

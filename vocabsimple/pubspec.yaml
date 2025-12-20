@@ -68,6 +68,9 @@ dependencies:
 
   # Google Fonts cho font đẹp
   google_fonts: ^6.1.0
+  
+  # SharedPreferences để lưu tiến trình
+  shared_preferences: ^2.2.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

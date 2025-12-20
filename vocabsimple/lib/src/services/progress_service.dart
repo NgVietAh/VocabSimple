@@ -1,4 +1,5 @@
 import 'package:vocabsimple/src/services/local_database_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProgressService {
   static final ProgressService _instance = ProgressService._internal();
@@ -11,15 +12,23 @@ class ProgressService {
   int _totalWords = 0;
   int _learnedWords = 0;
 
+  // Grammar progress
+  Map<String, bool> _grammarProgress = {}; // grammar_id -> completed
+  int _completedGrammarCount = 0;
+  int _totalGrammarCount = 0;
+
   // Getters
   Map<String, int> get topicProgress => _topicProgress;
   int get overallProgress => _overallProgress;
   int get totalWords => _totalWords;
   int get learnedWords => _learnedWords;
+  Map<String, bool> get grammarProgress => _grammarProgress;
+  int get completedGrammarCount => _completedGrammarCount;
+  int get totalGrammarCount => _totalGrammarCount;
 
   /// Load toàn bộ tiến trình từ database
   Future<void> loadAllProgress() async {
-    // Load danh sách chủ đề
+    // Load vocabulary progress
     final topics = await LocalDatabaseService.getTopics();
     _topicProgress.clear();
 
@@ -47,6 +56,53 @@ class ProgressService {
     _overallProgress = totalWords > 0
         ? ((totalLearned / totalWords) * 100).round()
         : 0;
+
+    // Load grammar progress
+    await loadGrammarProgress();
+  }
+
+  /// Load tiến trình ngữ pháp
+  Future<void> loadGrammarProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    final grammarKeys = prefs
+        .getKeys()
+        .where((key) => key.startsWith('grammar_'))
+        .toList();
+
+    _grammarProgress.clear();
+    _completedGrammarCount = 0;
+
+    for (var key in grammarKeys) {
+      final grammarId = key.replaceFirst('grammar_', '');
+      final isCompleted = prefs.getBool(key) ?? false;
+      _grammarProgress[grammarId] = isCompleted;
+      if (isCompleted) _completedGrammarCount++;
+    }
+  }
+
+  /// Đánh dấu bài ngữ pháp đã hoàn thành
+  Future<void> markGrammarAsCompleted(String grammarId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('grammar_$grammarId', true);
+
+    _grammarProgress[grammarId] = true;
+    _completedGrammarCount = _grammarProgress.values.where((v) => v).length;
+  }
+
+  /// Kiểm tra xem bài ngữ pháp đã hoàn thành chưa
+  bool isGrammarCompleted(String grammarId) {
+    return _grammarProgress['grammar_$grammarId'] ?? false;
+  }
+
+  /// Cập nhật tổng số bài ngữ pháp
+  void setTotalGrammarCount(int count) {
+    _totalGrammarCount = count;
+  }
+
+  /// Lấy phần trăm hoàn thành ngữ pháp
+  int getGrammarProgressPercent() {
+    if (_totalGrammarCount == 0) return 0;
+    return ((_completedGrammarCount / _totalGrammarCount) * 100).round();
   }
 
   /// Cập nhật tiến trình của một chủ đề cụ thể
@@ -100,14 +156,26 @@ class ProgressService {
 
   /// Reset toàn bộ tiến trình
   Future<void> resetAllProgress() async {
-    // Xóa tất cả dữ liệu
+    // Xóa tất cả dữ liệu vocabulary
     await LocalDatabaseService.clearAll();
+
+    // Xóa grammar progress
+    final prefs = await SharedPreferences.getInstance();
+    final grammarKeys = prefs
+        .getKeys()
+        .where((key) => key.startsWith('grammar_'))
+        .toList();
+    for (var key in grammarKeys) {
+      await prefs.remove(key);
+    }
 
     // Reset cache
     _topicProgress.clear();
     _overallProgress = 0;
     _totalWords = 0;
     _learnedWords = 0;
+    _grammarProgress.clear();
+    _completedGrammarCount = 0;
   }
 
   /// Force refresh toàn bộ tiến trình

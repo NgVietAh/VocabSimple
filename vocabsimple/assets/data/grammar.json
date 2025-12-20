@@ -346,7 +346,7 @@
       "the: dùng khi đã nhắc trước đó, hoặc duy nhất, hoặc cả 2 bên đều biết",
       "an: dùng trước nguyên âm (a, e, i, o, u)",
       "Không dùng mạo từ: tên riêng, môn học, bữa ăn, thể thao"
-    },
+    ],
     "examples": [
       {"en": "I saw a cat. The cat was black.", "vi": "Tôi thấy một con mèo. Con mèo đó màu đen."},
       {"en": "She is an engineer.", "vi": "Cô ấy là kỹ sư."},
@@ -375,7 +375,7 @@
       "Nơi chốn: at + địa điểm cụ thể, in + không gian rộng, on + bề mặt",
       "For + khoảng thời gian, Since + mốc thời gian",
       "By + phương tiện (không có 'the'): by car, by bus"
-    },
+    ],
     "examples": [
       {"en": "I wake up at 6 AM.", "vi": "Tôi thức dậy lúc 6 giờ sáng."},
       {"en": "He was born in 1995.", "vi": "Anh ấy sinh năm 1995."},

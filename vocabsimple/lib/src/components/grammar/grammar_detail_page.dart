@@ -5,8 +5,13 @@ import 'package:vocabsimple/src/components/grammar/grammar_study_page.dart';
 
 class GrammarDetailPage extends StatelessWidget {
   final Grammar grammar;
+  final List<Grammar>? allGrammarTopics;
 
-  const GrammarDetailPage({super.key, required this.grammar});
+  const GrammarDetailPage({
+    super.key,
+    required this.grammar,
+    this.allGrammarTopics,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -244,8 +249,10 @@ class GrammarDetailPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            GrammarStudyPage(grammar: grammar),
+                        builder: (context) => GrammarStudyPage(
+                          grammar: grammar,
+                          allGrammarTopics: allGrammarTopics,
+                        ),
                       ),
                     );
                   },
