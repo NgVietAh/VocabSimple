@@ -3,8 +3,11 @@ class Quiz {
   String correctAnswer;
   List<String> options;
   String? userAnswer;
-  String type; // 'multiple_choice', 'fill_blank'
+  String
+  type; // 'multiple_choice', 'fill_blank', 'grammar_structure', 'grammar_sentence'
   String? hint;
+  String? grammarId; // ID của ngữ pháp (nếu là câu hỏi ngữ pháp)
+  String? category; // 'vocabulary' hoặc 'grammar'
 
   Quiz({
     required this.question,
@@ -13,6 +16,8 @@ class Quiz {
     this.userAnswer,
     required this.type,
     this.hint,
+    this.grammarId,
+    this.category = 'vocabulary',
   });
 
   bool get isCorrect {

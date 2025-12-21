@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:vocabsimple/src/components/model/quiz.dart';
 import 'package:vocabsimple/src/services/local_database_service.dart';
+import 'package:vocabsimple/src/services/grammar_service.dart';
+import 'package:vocabsimple/src/services/progress_service.dart';
 
 class QuizService {
   /// Tạo quiz từ các từ đã học trong một chủ đề
@@ -67,6 +69,7 @@ class QuizService {
       options: options,
       type: 'multiple_choice',
       hint: word['phonetic'],
+      category: 'vocabulary',
     );
   }
 
@@ -81,6 +84,7 @@ class QuizService {
       options: [], // Không có options cho fill blank
       type: 'fill_blank',
       hint: 'Phiên âm: ${word['phonetic']}',
+      category: 'vocabulary',
     );
   }
 
@@ -100,12 +104,18 @@ class QuizService {
     }
 
     allLearnedWords.shuffle();
+
+    // Chia tỷ lệ: 60% từ vựng, 40% ngữ pháp
+    final vocabCount = (count * 0.6).round();
+    final grammarCount = count - vocabCount;
+
     final selectedWords = allLearnedWords
-        .take(min(count, allLearnedWords.length))
+        .take(min(vocabCount, allLearnedWords.length))
         .toList();
 
     List<Quiz> quizzes = [];
 
+    // Tạo câu hỏi từ vựng
     for (var word in selectedWords) {
       final random = Random().nextDouble();
 
@@ -116,7 +126,195 @@ class QuizService {
       }
     }
 
+    // Tạo câu hỏi ngữ pháp
+    final grammarQuizzes = await generateGrammarQuiz(count: grammarCount);
+    quizzes.addAll(grammarQuizzes);
+
     quizzes.shuffle();
     return quizzes;
+  }
+
+  /// ==================== GRAMMAR QUIZ METHODS ====================
+
+  /// Tạo câu hỏi ngữ pháp từ các ngữ pháp đã học
+  static Future<List<Quiz>> generateGrammarQuiz({int count = 10}) async {
+    try {
+      // Lấy danh sách ngữ pháp đã học
+      final learnedGrammarIds = await ProgressService.getLearnedGrammarIds();
+
+      if (learnedGrammarIds.isEmpty) {
+        return [];
+      }
+
+      // Load tất cả ngữ pháp
+      final allGrammar = await GrammarService.loadGrammar();
+
+      // Lọc các ngữ pháp đã học
+      final learnedGrammar = allGrammar
+          .where((g) => learnedGrammarIds.contains(g.id))
+          .toList();
+
+      if (learnedGrammar.isEmpty) {
+        return [];
+      }
+
+      List<Quiz> quizzes = [];
+      learnedGrammar.shuffle();
+
+      final selectedGrammar = learnedGrammar
+          .take(min(count, learnedGrammar.length))
+          .toList();
+
+      for (var grammar in selectedGrammar) {
+        // Random loại câu hỏi
+        final random = Random().nextDouble();
+
+        if (random < 0.33 && grammar.structure.isNotEmpty) {
+          // Structure multiple choice
+          quizzes.add(_createGrammarStructureQuiz(grammar));
+        } else if (random < 0.66 && grammar.examples.isNotEmpty) {
+          // Sentence completion từ examples
+          quizzes.add(_createGrammarSentenceQuiz(grammar));
+        } else if (grammar.rules.isNotEmpty) {
+          // Rules fill blank
+          quizzes.add(_createGrammarRuleQuiz(grammar));
+        }
+      }
+
+      quizzes.shuffle();
+      return quizzes;
+    } catch (e) {
+      print('Error generating grammar quiz: $e');
+      return [];
+    }
+  }
+
+  /// Tạo câu hỏi multiple choice về cấu trúc ngữ pháp
+  static Quiz _createGrammarStructureQuiz(grammar) {
+    final structureEntries = grammar.structure.entries.toList();
+    structureEntries.shuffle();
+
+    final correctEntry = structureEntries.first;
+    final correctAnswer = correctEntry.value;
+
+    // Tạo câu hỏi
+    String questionType = correctEntry.key;
+    String questionTypeVi = _translateStructureType(questionType);
+
+    final question = 'Cấu trúc ${questionTypeVi} của "${grammar.title}" là gì?';
+
+    // Tạo các đáp án sai từ các structure khác
+    List<String> wrongAnswers = structureEntries
+        .where((e) => e.value != correctAnswer)
+        .map((e) => e.value)
+        .toList();
+
+    // Nếu không đủ đáp án sai, tạo thêm
+    while (wrongAnswers.length < 3) {
+      wrongAnswers.add('S + V + O');
+    }
+
+    final options = <String>[correctAnswer, ...wrongAnswers.take(3)];
+    options.shuffle();
+
+    return Quiz(
+      question: question,
+      correctAnswer: correctAnswer,
+      options: options,
+      type: 'multiple_choice',
+      hint: grammar.description,
+      grammarId: grammar.id,
+      category: 'grammar',
+    );
+  }
+
+  /// Tạo câu hỏi hoàn thành câu từ examples
+  static Quiz _createGrammarSentenceQuiz(grammar) {
+    final examples = grammar.examples;
+    examples.shuffle();
+
+    final example = examples.first;
+    final correctAnswer = example.en;
+
+    // Tạo câu hỏi: cho nghĩa tiếng Việt, yêu cầu điền câu tiếng Anh
+    final question = 'Hoàn thành câu: "${example.vi}"';
+
+    // Tách câu thành các từ và ẩn một từ quan trọng
+    final words = correctAnswer.split(' ');
+
+    if (words.length >= 3) {
+      // Ẩn động từ hoặc từ ở giữa
+      final hiddenIndex = words.length ~/ 2;
+      final hiddenWord = words[hiddenIndex].replaceAll(RegExp(r'[.,!?]'), '');
+
+      words[hiddenIndex] = '_____';
+      final questionSentence = words.join(' ');
+
+      return Quiz(
+        question: '$question\n$questionSentence',
+        correctAnswer: hiddenWord.toLowerCase(),
+        options: [],
+        type: 'fill_blank',
+        hint: 'Ngữ pháp: ${grammar.title}',
+        grammarId: grammar.id,
+        category: 'grammar',
+      );
+    } else {
+      // Nếu câu quá ngắn, yêu cầu điền toàn bộ
+      return Quiz(
+        question: question,
+        correctAnswer: correctAnswer.toLowerCase(),
+        options: [],
+        type: 'fill_blank',
+        hint: 'Ngữ pháp: ${grammar.title}',
+        grammarId: grammar.id,
+        category: 'grammar',
+      );
+    }
+  }
+
+  /// Tạo câu hỏi về quy tắc ngữ pháp
+  static Quiz _createGrammarRuleQuiz(grammar) {
+    final rules = grammar.rules;
+    rules.shuffle();
+
+    final correctRule = rules.first;
+
+    // Tạo câu hỏi
+    final question = 'Điều gì đúng về "${grammar.title}"?';
+
+    // Tạo các quy tắc sai
+    List<String> wrongRules = [
+      'Động từ không thay đổi với mọi ngôi',
+      'Chỉ dùng trong câu phủ định',
+      'Không cần trợ động từ',
+    ];
+
+    final options = <String>[correctRule, ...wrongRules.take(3)];
+    options.shuffle();
+
+    return Quiz(
+      question: question,
+      correctAnswer: correctRule,
+      options: options,
+      type: 'multiple_choice',
+      hint: grammar.description,
+      grammarId: grammar.id,
+      category: 'grammar',
+    );
+  }
+
+  /// Helper: Dịch loại cấu trúc sang tiếng Việt
+  static String _translateStructureType(String type) {
+    switch (type.toLowerCase()) {
+      case 'affirmative':
+        return 'khẳng định';
+      case 'negative':
+        return 'phủ định';
+      case 'question':
+        return 'nghi vấn';
+      default:
+        return type;
+    }
   }
 }
