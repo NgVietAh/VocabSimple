@@ -66,7 +66,12 @@ class ProgressService {
     final prefs = await SharedPreferences.getInstance();
     final grammarKeys = prefs
         .getKeys()
-        .where((key) => key.startsWith('grammar_'))
+        .where(
+          (key) =>
+              key.startsWith('grammar_') &&
+              key != 'grammar_tests_count' &&
+              key != 'grammar_tests_total_score',
+        )
         .toList();
 
     _grammarProgress.clear();
@@ -92,6 +97,55 @@ class ProgressService {
   /// Kiểm tra xem bài ngữ pháp đã hoàn thành chưa
   bool isGrammarCompleted(String grammarId) {
     return _grammarProgress['grammar_$grammarId'] ?? false;
+  }
+
+  /// Lấy danh sách ID các bài ngữ pháp đã học
+  static Future<List<String>> getLearnedGrammarIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final grammarKeys = prefs
+        .getKeys()
+        .where(
+          (key) =>
+              key.startsWith('grammar_') &&
+              key != 'grammar_tests_count' &&
+              key != 'grammar_tests_total_score',
+        )
+        .toList();
+
+    List<String> learnedIds = [];
+    for (var key in grammarKeys) {
+      final isCompleted = prefs.getBool(key) ?? false;
+      if (isCompleted) {
+        final grammarId = key.replaceFirst('grammar_', '');
+        learnedIds.add(grammarId);
+      }
+    }
+
+    return learnedIds;
+  }
+
+  /// Lấy thống kê test ngữ pháp riêng
+  static Future<Map<String, dynamic>> getGrammarTestStats() async {
+    final prefs = await SharedPreferences.getInstance();
+    final totalTests = prefs.getInt('grammar_tests_count') ?? 0;
+    final totalScore = prefs.getDouble('grammar_tests_total_score') ?? 0.0;
+    final avgScore = totalTests > 0 ? totalScore / totalTests : 0.0;
+
+    return {'total': totalTests, 'average': avgScore};
+  }
+
+  /// Lưu kết quả test ngữ pháp
+  static Future<void> saveGrammarTestResult(double score) async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentCount = prefs.getInt('grammar_tests_count') ?? 0;
+    final currentTotalScore =
+        prefs.getDouble('grammar_tests_total_score') ?? 0.0;
+
+    await prefs.setInt('grammar_tests_count', currentCount + 1);
+    await prefs.setDouble(
+      'grammar_tests_total_score',
+      currentTotalScore + score,
+    );
   }
 
   /// Cập nhật tổng số bài ngữ pháp

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vocabsimple/src/services/local_database_service.dart';
 import 'package:vocabsimple/src/components/test/test_page.dart';
+import 'package:vocabsimple/src/services/progress_service.dart';
+import 'package:vocabsimple/src/components/test/grammar_test_page.dart';
 
 class TestListPage extends StatefulWidget {
   const TestListPage({super.key});
@@ -127,7 +129,10 @@ class _TestListPageState extends State<TestListPage> {
                   children: [
                     // Quick Test
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Text(
                         'Bài test nhanh',
                         style: GoogleFonts.poppins(
@@ -161,7 +166,10 @@ class _TestListPageState extends State<TestListPage> {
 
                     // Test by Topic
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Text(
                         'Test theo chủ đề',
                         style: GoogleFonts.poppins(
@@ -174,14 +182,16 @@ class _TestListPageState extends State<TestListPage> {
 
                     ...topics.map((topic) {
                       final percent = topic['percent'] ?? 0;
-                      
+
                       return buildTestCard(
                         title: topic['name'],
                         description: percent > 0
                             ? 'Đã học $percent% - ${topic['length']} từ'
                             : 'Chưa học chủ đề này',
                         icon: Icons.topic_rounded,
-                        color: percent > 0 ? Colors.blue[600]! : Colors.grey[400]!,
+                        color: percent > 0
+                            ? Colors.blue[600]!
+                            : Colors.grey[400]!,
                         onTap: percent > 0
                             ? () {
                                 Navigator.push(
@@ -198,13 +208,49 @@ class _TestListPageState extends State<TestListPage> {
                             : () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Bạn chưa học từ nào trong chủ đề này'),
+                                    content: Text(
+                                      'Bạn chưa học từ nào trong chủ đề này',
+                                    ),
                                     backgroundColor: Colors.orange,
                                   ),
                                 );
                               },
                       );
                     }).toList(),
+
+                    const SizedBox(height: 20),
+
+                    // Test ngữ pháp
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        'Test ngữ pháp',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+
+                    buildTestCard(
+                      title: 'Test ngữ pháp tổng hợp',
+                      description: 'Kiểm tra tất cả ngữ pháp đã học',
+                      icon: Icons.menu_book_rounded,
+                      color: Colors.purple[600]!,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                GrammarTestPage(questionCount: 10),
+                          ),
+                        );
+                      },
+                    ),
 
                     const SizedBox(height: 20),
                   ],
@@ -214,4 +260,3 @@ class _TestListPageState extends State<TestListPage> {
     );
   }
 }
-
