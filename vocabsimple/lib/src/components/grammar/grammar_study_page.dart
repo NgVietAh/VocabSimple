@@ -5,14 +5,14 @@ import 'package:vocabsimple/src/services/grammar_service.dart';
 import 'package:vocabsimple/src/services/progress_service.dart';
 import 'dart:math';
 
-enum ExerciseType { matching, fillBlank, writeExample }
+enum ExerciseType { matching, arrangeWords, arrangeSentence }
 
 class GrammarStudyPage extends StatefulWidget {
   final Grammar grammar;
   final List<Grammar>? allGrammarTopics;
 
   const GrammarStudyPage({
-    super.key, 
+    super.key,
     required this.grammar,
     this.allGrammarTopics,
   });
@@ -31,29 +31,33 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
   // Exercise state
   ExerciseType _currentExerciseType = ExerciseType.matching;
   int _currentExerciseIndex = 0;
-  
+
   // Matching exercise state
   List<String> _quizParts = [];
-  List<String> _selectedParts = [];
+  List<int> _selectedPartsIndexes =
+      []; // Lưu index thay vì value để tránh trùng lặp
   String? _correctAnswer;
   String? _currentStructureKey;
-  
-  // Fill blank exercise state
-  String? _fillBlankSentence;
-  String? _fillBlankAnswer;
-  TextEditingController _fillBlankController = TextEditingController();
-  
-  // Write example exercise state
-  String? _writeExamplePrompt;
-  TextEditingController _writeExampleController = TextEditingController();
-  
+
+  // Arrange words exercise state
+  List<String> _arrangeWords = []; // Các từ bị xáo trộn
+  List<int> _selectedWordsIndexes = []; // Các từ đã chọn (theo index)
+  String? _correctWordsSentence; // Câu đúng
+  String? _arrangeWordsHint; // Gợi ý (cấu trúc ngữ pháp)
+
+  // Arrange sentence exercise state
+  List<String> _arrangeSentenceParts = []; // Các cụm từ bị xáo trộn
+  List<int> _selectedSentenceIndexes = []; // Các cụm từ đã chọn (theo index)
+  String? _correctSentence; // Câu đúng
+  String? _arrangeSentenceHint; // Gợi ý
+
   // General state
   bool? _isCorrect;
   int _score = 0;
   int _attempts = 0;
   bool _isCompleted = false;
   int _currentStructureIndex = 0;
-  
+
   List<Grammar>? _allGrammarTopics;
 
   @override
@@ -63,14 +67,12 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
     _loadAllGrammarIfNeeded();
     _generateExercise();
   }
-  
+
   @override
   void dispose() {
-    _fillBlankController.dispose();
-    _writeExampleController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _loadAllGrammarIfNeeded() async {
     if (_allGrammarTopics == null) {
       _allGrammarTopics = await GrammarService.loadGrammar();
@@ -81,19 +83,19 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
   void _generateExercise() {
     setState(() {
       _isCorrect = null;
-      _selectedParts = [];
-      _fillBlankController.clear();
-      _writeExampleController.clear();
-      
+      _selectedPartsIndexes = [];
+      _selectedWordsIndexes = [];
+      _selectedSentenceIndexes = [];
+
       switch (_currentExerciseType) {
         case ExerciseType.matching:
           _generateMatchingExercise();
           break;
-        case ExerciseType.fillBlank:
-          _generateFillBlankExercise();
+        case ExerciseType.arrangeWords:
+          _generateArrangeWordsExercise();
           break;
-        case ExerciseType.writeExample:
-          _generateWriteExampleExercise();
+        case ExerciseType.arrangeSentence:
+          _generateArrangeSentenceExercise();
           break;
       }
     });
@@ -101,70 +103,110 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
 
   void _generateMatchingExercise() {
     if (widget.grammar.structure.isEmpty) return;
-    
+
     final random = Random();
     _currentStructureIndex = random.nextInt(widget.grammar.structure.length);
-    final structureEntry = widget.grammar.structure.entries.elementAt(_currentStructureIndex);
-    
+    final structureEntry = widget.grammar.structure.entries.elementAt(
+      _currentStructureIndex,
+    );
+
     _currentStructureKey = structureEntry.key;
     _correctAnswer = structureEntry.value;
     _quizParts = structureEntry.value.split(RegExp(r'\s+'));
     _quizParts.shuffle();
   }
 
-  void _generateFillBlankExercise() {
+  void _generateArrangeWordsExercise() {
     if (widget.grammar.examples.isEmpty) return;
-    
+
     final random = Random();
-    final example = widget.grammar.examples[random.nextInt(widget.grammar.examples.length)];
-    final words = example.en.split(' ');
-    
-    if (words.isEmpty) return;
-    
-    final blankIndex = random.nextInt(words.length);
-    _fillBlankAnswer = words[blankIndex].replaceAll(RegExp(r'[.,!?]'), '');
-    words[blankIndex] = '______';
-    _fillBlankSentence = words.join(' ');
+    final example =
+        widget.grammar.examples[random.nextInt(widget.grammar.examples.length)];
+
+    _correctWordsSentence = example.en;
+    _arrangeWordsHint = example.vi; // Dịch tiếng Việt làm gợi ý
+
+    // Tách câu thành các từ và xáo trộn
+    _arrangeWords = example.en.split(RegExp(r'\s+'));
+    _arrangeWords.shuffle();
   }
 
-  void _generateWriteExampleExercise() {
-    if (widget.grammar.structure.isEmpty) return;
-    
+  void _generateArrangeSentenceExercise() {
+    if (widget.grammar.examples.isEmpty) return;
+
     final random = Random();
-    final structureEntry = widget.grammar.structure.entries.elementAt(
-      random.nextInt(widget.grammar.structure.length)
-    );
-    
-    _writeExamplePrompt = 'Viết một câu ví dụ sử dụng cấu trúc:\n${structureEntry.value}';
+    final example =
+        widget.grammar.examples[random.nextInt(widget.grammar.examples.length)];
+
+    _correctSentence = example.en;
+    _arrangeSentenceHint = example.vi; // Dịch tiếng Việt làm gợi ý
+
+    // Tách câu thành các cụm từ (2-3 từ) và xáo trộn
+    List<String> words = example.en.split(RegExp(r'\s+'));
+    _arrangeSentenceParts = [];
+
+    // Nhóm các từ thành cụm 2-3 từ
+    for (int i = 0; i < words.length; i += 2) {
+      if (i + 1 < words.length) {
+        _arrangeSentenceParts.add('${words[i]} ${words[i + 1]}');
+      } else {
+        _arrangeSentenceParts.add(words[i]);
+      }
+    }
+
+    _arrangeSentenceParts.shuffle();
   }
 
   void _checkAnswer() {
     setState(() {
       _attempts++;
-      
+
       switch (_currentExerciseType) {
         case ExerciseType.matching:
-          String userAnswer = _selectedParts.join(' ').replaceAll(RegExp(r'\s+'), ' ');
-          String correctAnswerClean = _correctAnswer!.replaceAll(RegExp(r'\s+'), ' ');
+          String userAnswer = _selectedPartsIndexes
+              .map((i) => _quizParts[i])
+              .join(' ')
+              .replaceAll(RegExp(r'\s+'), ' ');
+          String correctAnswerClean = _correctAnswer!.replaceAll(
+            RegExp(r'\s+'),
+            ' ',
+          );
           _isCorrect = userAnswer.trim() == correctAnswerClean.trim();
           break;
-          
-        case ExerciseType.fillBlank:
-          String userAnswer = _fillBlankController.text.trim().toLowerCase();
-          String correctAnswer = _fillBlankAnswer!.toLowerCase().replaceAll(RegExp(r'[.,!?]'), '');
-          _isCorrect = userAnswer == correctAnswer;
+
+        case ExerciseType.arrangeWords:
+          String userSentence = _selectedWordsIndexes
+              .map((i) => _arrangeWords[i])
+              .join(' ')
+              .toLowerCase()
+              .replaceAll(RegExp(r'[.,!?]'), '')
+              .trim();
+          String correctClean = _correctWordsSentence!
+              .toLowerCase()
+              .replaceAll(RegExp(r'[.,!?]'), '')
+              .trim();
+          _isCorrect = userSentence == correctClean;
           break;
-          
-        case ExerciseType.writeExample:
-          String userText = _writeExampleController.text.trim();
-          _isCorrect = userText.split(' ').length >= 4;
+
+        case ExerciseType.arrangeSentence:
+          String userSentence = _selectedSentenceIndexes
+              .map((i) => _arrangeSentenceParts[i])
+              .join(' ')
+              .toLowerCase()
+              .replaceAll(RegExp(r'[.,!?]'), '')
+              .trim();
+          String correctClean = _correctSentence!
+              .toLowerCase()
+              .replaceAll(RegExp(r'[.,!?]'), '')
+              .trim();
+          _isCorrect = userSentence == correctClean;
           break;
       }
 
       if (_isCorrect!) {
         _score++;
       }
-      
+
       if (_attempts >= 5 && _score >= 4) {
         _isCompleted = true;
         Future.delayed(const Duration(milliseconds: 500), () {
@@ -185,13 +227,15 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
       _generateExercise();
     });
   }
-  
+
   void _switchToNextTopic() {
     if (_allGrammarTopics == null || _allGrammarTopics!.isEmpty) return;
-    
-    int currentIndex = _allGrammarTopics!.indexWhere((g) => g.id == widget.grammar.id);
+
+    int currentIndex = _allGrammarTopics!.indexWhere(
+      (g) => g.id == widget.grammar.id,
+    );
     int nextIndex = (currentIndex + 1) % _allGrammarTopics!.length;
-    
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -202,14 +246,16 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
       ),
     );
   }
-  
+
   void _switchToPreviousTopic() {
     if (_allGrammarTopics == null || _allGrammarTopics!.isEmpty) return;
-    
-    int currentIndex = _allGrammarTopics!.indexWhere((g) => g.id == widget.grammar.id);
+
+    int currentIndex = _allGrammarTopics!.indexWhere(
+      (g) => g.id == widget.grammar.id,
+    );
     int prevIndex = currentIndex - 1;
     if (prevIndex < 0) prevIndex = _allGrammarTopics!.length - 1;
-    
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -224,9 +270,9 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
   void _showCompletionDialog() async {
     final progressService = ProgressService();
     await progressService.markGrammarAsCompleted(widget.grammar.id);
-    
+
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -321,10 +367,7 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
             ),
             Text(
               'Level: ${widget.grammar.level}',
-              style: GoogleFonts.inter(
-                color: Colors.grey[600],
-                fontSize: 11,
-              ),
+              style: GoogleFonts.inter(color: Colors.grey[600], fontSize: 11),
             ),
           ],
         ),
@@ -353,14 +396,19 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4)],
+                boxShadow: [
+                  BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Tiến độ: $_attempts/5 câu',
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   Text(
                     'Đúng: $_score',
@@ -373,7 +421,7 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
 
             // Mô tả
@@ -568,30 +616,30 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                               ExerciseType.matching,
                             ),
                             _buildExerciseTypeChip(
-                              'Điền từ',
-                              Icons.edit,
-                              ExerciseType.fillBlank,
+                              'Sắp xếp từ',
+                              Icons.sort,
+                              ExerciseType.arrangeWords,
                             ),
                             _buildExerciseTypeChip(
-                              'Viết ví dụ',
+                              'Ghép câu',
                               Icons.create,
-                              ExerciseType.writeExample,
+                              ExerciseType.arrangeSentence,
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Exercise content
                   if (_currentExerciseType == ExerciseType.matching)
                     _buildMatchingExercise()
-                  else if (_currentExerciseType == ExerciseType.fillBlank)
-                    _buildFillBlankExercise()
-                  else if (_currentExerciseType == ExerciseType.writeExample)
-                    _buildWriteExampleExercise(),
+                  else if (_currentExerciseType == ExerciseType.arrangeWords)
+                    _buildArrangeWordsExercise()
+                  else if (_currentExerciseType == ExerciseType.arrangeSentence)
+                    _buildArrangeSentenceExercise(),
                 ],
               ),
             ),
@@ -601,13 +649,21 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
     );
   }
 
-  Widget _buildExerciseTypeChip(String label, IconData icon, ExerciseType type) {
+  Widget _buildExerciseTypeChip(
+    String label,
+    IconData icon,
+    ExerciseType type,
+  ) {
     bool isSelected = _currentExerciseType == type;
     return FilterChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.purple[700]),
+          Icon(
+            icon,
+            size: 16,
+            color: isSelected ? Colors.white : Colors.purple[700],
+          ),
           const SizedBox(width: 4),
           Text(label),
         ],
@@ -625,7 +681,7 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
       ),
     );
   }
-  
+
   Widget _buildMatchingExercise() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,7 +695,7 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Selected parts
         Container(
           padding: const EdgeInsets.all(16),
@@ -647,11 +703,13 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _selectedParts.isEmpty ? Colors.grey[300]! : Colors.purple[300]!,
+              color: _selectedPartsIndexes.isEmpty
+                  ? Colors.grey[300]!
+                  : Colors.purple[300]!,
               width: 2,
             ),
           ),
-          child: _selectedParts.isEmpty
+          child: _selectedPartsIndexes.isEmpty
               ? Center(
                   child: Text(
                     'Chọn các phần để ghép công thức',
@@ -664,41 +722,48 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
               : Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: _selectedParts.map((part) {
+                  children: _selectedPartsIndexes.asMap().entries.map((entry) {
+                    int selectedIndex = entry.key;
+                    int partIndex = entry.value;
                     return Chip(
-                      label: Text(part),
+                      label: Text(_quizParts[partIndex]),
                       onDeleted: () {
                         setState(() {
-                          _selectedParts.remove(part);
+                          _selectedPartsIndexes.removeAt(selectedIndex);
                         });
                       },
                     );
                   }).toList(),
                 ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Quiz parts
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: _quizParts.map((part) {
-            final isSelected = _selectedParts.contains(part);
+          children: _quizParts.asMap().entries.map((entry) {
+            final index = entry.key;
+            final part = entry.value;
+            final isSelected = _selectedPartsIndexes.contains(index);
             return GestureDetector(
               onTap: _isCorrect == null
                   ? () {
                       setState(() {
                         if (isSelected) {
-                          _selectedParts.remove(part);
+                          _selectedPartsIndexes.remove(index);
                         } else {
-                          _selectedParts.add(part);
+                          _selectedPartsIndexes.add(index);
                         }
                       });
                     }
                   : null,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.purple[100] : Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -711,7 +776,9 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                   part,
                   style: GoogleFonts.robotoMono(
                     fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     color: isSelected ? Colors.purple[900] : Colors.black87,
                   ),
                 ),
@@ -719,9 +786,9 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
             );
           }).toList(),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Feedback
         if (_isCorrect != null)
           Container(
@@ -751,21 +818,31 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
               ],
             ),
           ),
-        
+
         const SizedBox(height: 20),
-        
+
         // Buttons
         Row(
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: _selectedParts.isEmpty || _isCorrect != null ? null : _checkAnswer,
+                onPressed: _selectedPartsIndexes.isEmpty || _isCorrect != null
+                    ? null
+                    : _checkAnswer,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purple[600],
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: Text('Kiểm tra', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Kiểm tra',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -774,13 +851,20 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                 child: ElevatedButton(
                   onPressed: _nextQuestion,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isCorrect! ? Colors.green[600] : Colors.orange[600],
+                    backgroundColor: _isCorrect!
+                        ? Colors.green[600]
+                        : Colors.orange[600],
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Text(
                     _isCorrect! ? 'Tiếp theo' : 'Thử lại',
-                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -790,20 +874,11 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
     );
   }
 
-  Widget _buildFillBlankExercise() {
+  Widget _buildArrangeWordsExercise() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Điền từ thích hợp vào chỗ trống:',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.purple[900],
-          ),
-        ),
-        const SizedBox(height: 16),
-        
+        // Hint (Vietnamese translation)
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -812,27 +887,130 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
             ),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(
-            _fillBlankSentence ?? '',
-            style: GoogleFonts.inter(fontSize: 16, height: 1.6, fontWeight: FontWeight.w600),
+          child: Row(
+            children: [
+              Icon(Icons.lightbulb_outline, color: Colors.blue[700], size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Gợi ý: $_arrangeWordsHint',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue[900],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
-        TextField(
-          controller: _fillBlankController,
-          decoration: InputDecoration(
-            labelText: 'Nhập từ',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            filled: true,
-            fillColor: Colors.white,
+
+        Text(
+          'Sắp xếp các từ sau thành câu hoàn chỉnh:',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.purple[900],
           ),
-          style: GoogleFonts.inter(fontSize: 16),
         ),
-        
         const SizedBox(height: 16),
-        
+
+        // Selected words area
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _selectedWordsIndexes.isEmpty
+                  ? Colors.grey[300]!
+                  : Colors.purple[300]!,
+              width: 2,
+            ),
+          ),
+          child: _selectedWordsIndexes.isEmpty
+              ? Center(
+                  child: Text(
+                    'Chọn các từ để tạo câu',
+                    style: GoogleFonts.inter(
+                      color: Colors.grey[500],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedWordsIndexes.asMap().entries.map((entry) {
+                    int selectedIndex = entry.key;
+                    int wordIndex = entry.value;
+                    return Chip(
+                      label: Text(_arrangeWords[wordIndex]),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedWordsIndexes.removeAt(selectedIndex);
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Available words
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: _arrangeWords.asMap().entries.map((entry) {
+            final index = entry.key;
+            final word = entry.value;
+            final isSelected = _selectedWordsIndexes.contains(index);
+            return GestureDetector(
+              onTap: _isCorrect == null
+                  ? () {
+                      setState(() {
+                        if (isSelected) {
+                          _selectedWordsIndexes.remove(index);
+                        } else {
+                          _selectedWordsIndexes.add(index);
+                        }
+                      });
+                    }
+                  : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.purple[100] : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? Colors.purple[600]! : Colors.grey[300]!,
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  word,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: isSelected ? Colors.purple[900] : Colors.black87,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Feedback
         if (_isCorrect != null)
           Container(
             padding: const EdgeInsets.all(12),
@@ -850,8 +1028,8 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                 Expanded(
                   child: Text(
                     _isCorrect!
-                        ? 'Chính xác!'
-                        : 'Sai rồi! Đáp án đúng: $_fillBlankAnswer',
+                        ? 'Chính xác! Bạn đã sắp xếp đúng câu.'
+                        : 'Chưa đúng. Đáp án: $_correctWordsSentence',
                     style: GoogleFonts.inter(
                       color: _isCorrect! ? Colors.green[900] : Colors.red[900],
                       fontWeight: FontWeight.w600,
@@ -861,20 +1039,31 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
               ],
             ),
           ),
-        
+
         const SizedBox(height: 20),
-        
+
+        // Buttons
         Row(
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: _fillBlankController.text.isEmpty || _isCorrect != null ? null : _checkAnswer,
+                onPressed: _selectedWordsIndexes.isEmpty || _isCorrect != null
+                    ? null
+                    : _checkAnswer,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purple[600],
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: Text('Kiểm tra', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Kiểm tra',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -883,13 +1072,20 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                 child: ElevatedButton(
                   onPressed: _nextQuestion,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isCorrect! ? Colors.green[600] : Colors.orange[600],
+                    backgroundColor: _isCorrect!
+                        ? Colors.green[600]
+                        : Colors.orange[600],
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Text(
                     _isCorrect! ? 'Tiếp theo' : 'Thử lại',
-                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -899,10 +1095,11 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
     );
   }
 
-  Widget _buildWriteExampleExercise() {
+  Widget _buildArrangeSentenceExercise() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Hint (Vietnamese translation)
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -911,29 +1108,132 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
             ),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(
-            _writeExamplePrompt ?? '',
-            style: GoogleFonts.inter(fontSize: 14, height: 1.6, fontWeight: FontWeight.w600),
+          child: Row(
+            children: [
+              Icon(Icons.lightbulb_outline, color: Colors.green[700], size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Gợi ý: $_arrangeSentenceHint',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[900],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
-        TextField(
-          controller: _writeExampleController,
-          maxLines: 4,
-          decoration: InputDecoration(
-            labelText: 'Nhập câu ví dụ của bạn',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            filled: true,
-            fillColor: Colors.white,
-            hintText: 'Viết ít nhất 4 từ...',
+
+        Text(
+          'Ghép các cụm từ sau thành câu hoàn chỉnh:',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.purple[900],
           ),
-          style: GoogleFonts.inter(fontSize: 16),
         ),
-        
         const SizedBox(height: 16),
-        
+
+        // Selected sentence parts area
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _selectedSentenceIndexes.isEmpty
+                  ? Colors.grey[300]!
+                  : Colors.purple[300]!,
+              width: 2,
+            ),
+          ),
+          child: _selectedSentenceIndexes.isEmpty
+              ? Center(
+                  child: Text(
+                    'Chọn các cụm từ để ghép câu',
+                    style: GoogleFonts.inter(
+                      color: Colors.grey[500],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedSentenceIndexes.asMap().entries.map((
+                    entry,
+                  ) {
+                    int selectedIndex = entry.key;
+                    int partIndex = entry.value;
+                    return Chip(
+                      label: Text(_arrangeSentenceParts[partIndex]),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedSentenceIndexes.removeAt(selectedIndex);
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Available sentence parts
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: _arrangeSentenceParts.asMap().entries.map((entry) {
+            final index = entry.key;
+            final part = entry.value;
+            final isSelected = _selectedSentenceIndexes.contains(index);
+            return GestureDetector(
+              onTap: _isCorrect == null
+                  ? () {
+                      setState(() {
+                        if (isSelected) {
+                          _selectedSentenceIndexes.remove(index);
+                        } else {
+                          _selectedSentenceIndexes.add(index);
+                        }
+                      });
+                    }
+                  : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.purple[100] : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? Colors.purple[600]! : Colors.grey[300]!,
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  part,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: isSelected ? Colors.purple[900] : Colors.black87,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Feedback
         if (_isCorrect != null)
           Container(
             padding: const EdgeInsets.all(12),
@@ -951,8 +1251,8 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                 Expanded(
                   child: Text(
                     _isCorrect!
-                        ? 'Tuyệt vời! Bạn đã viết một câu ví dụ hợp lệ.'
-                        : 'Câu của bạn quá ngắn. Hãy viết ít nhất 4 từ.',
+                        ? 'Tuyệt vời! Bạn đã ghép đúng câu.'
+                        : 'Chưa đúng. Đáp án: $_correctSentence',
                     style: GoogleFonts.inter(
                       color: _isCorrect! ? Colors.green[900] : Colors.red[900],
                       fontWeight: FontWeight.w600,
@@ -962,20 +1262,32 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
               ],
             ),
           ),
-        
+
         const SizedBox(height: 20),
-        
+
+        // Buttons
         Row(
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: _writeExampleController.text.isEmpty || _isCorrect != null ? null : _checkAnswer,
+                onPressed:
+                    _selectedSentenceIndexes.isEmpty || _isCorrect != null
+                    ? null
+                    : _checkAnswer,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purple[600],
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: Text('Kiểm tra', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Kiểm tra',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -984,13 +1296,20 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                 child: ElevatedButton(
                   onPressed: _nextQuestion,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isCorrect! ? Colors.green[600] : Colors.orange[600],
+                    backgroundColor: _isCorrect!
+                        ? Colors.green[600]
+                        : Colors.orange[600],
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Text(
                     _isCorrect! ? 'Tiếp theo' : 'Thử lại',
-                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -1011,7 +1330,9 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4)],
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4),
+        ],
       ),
       child: Column(
         children: [
@@ -1034,7 +1355,9 @@ class _GrammarStudyPageState extends State<GrammarStudyPage> {
                     ),
                   ),
                   Icon(
-                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                     color: Colors.purple[700],
                   ),
                 ],
