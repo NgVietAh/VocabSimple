@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "550057242011",
+    "firebase_url": "https://vocabsimple-d60bf-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "vocabsimple-d60bf",
     "storage_bucket": "vocabsimple-d60bf.firebasestorage.app"
   },
@@ -14,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "550057242011-hjfjfeqk0aljnqma2ueresma526mci84.apps.googleusercontent.com",
+          "client_id": "550057242011-12kn2fcjporsb9sep7335c0ni249n3d3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.anh.vocabsimple",
-            "certificate_hash": "2c1418aefd7899f8cdfc2d4087cc19d2b83dfe4b"
+            "certificate_hash": "ec1ae521663e132e42f3faf55031c9f66526d3fd"
           }
         },
         {
