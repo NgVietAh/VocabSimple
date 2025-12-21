@@ -1,0 +1,46 @@
+name: Generate Git Report
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  git-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate git report
+        run: |
+          REPO_NAME=$(basename "$GITHUB_REPOSITORY")
+          COMMITS=$(git rev-list --count HEAD)
+          CONTRIBUTORS=$(git shortlog -sne | wc -l)
+
+          cat <<EOF > git-report.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Git Report - $REPO_NAME</title>
+          </head>
+          <body>
+            <h1>Git Report – $REPO_NAME</h1>
+            <p>Total commits: <b>$COMMITS</b></p>
+            <p>Contributors: <b>$CONTRIBUTORS</b></p>
+            <h2>Contributors</h2>
+            <pre>$(git shortlog -sne)</pre>
+            <h2>Recent commits</h2>
+            <pre>$(git log --oneline -10)</pre>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-report
+          path: git-report.html
