@@ -3,7 +3,7 @@
     "topic_index": 0,
     "name": "Family",
     "image": "assets/images/family.png",
-    "length": 10,
+    "length": 20,
     "percent": 0,
     "words": {
       "father": { "name": "father", "phonetic": "ˈfɑːðər", "translate": "bố" },
@@ -15,14 +15,24 @@
       "uncle": { "name": "uncle", "phonetic": "ˈʌŋkəl", "translate": "chú/cậu" },
       "aunt": { "name": "aunt", "phonetic": "ænt", "translate": "dì/cô" },
       "cousin": { "name": "cousin", "phonetic": "ˈkʌzən", "translate": "anh/chị/em họ" },
-      "baby": { "name": "baby", "phonetic": "ˈbeɪbi", "translate": "em bé" }
+      "baby": { "name": "baby", "phonetic": "ˈbeɪbi", "translate": "em bé" },
+      "son": { "name": "son", "phonetic": "sʌn", "translate": "con trai" },
+      "daughter": { "name": "daughter", "phonetic": "ˈdɔːtər", "translate": "con gái" },
+      "husband": { "name": "husband", "phonetic": "ˈhʌzbənd", "translate": "chồng" },
+      "wife": { "name": "wife", "phonetic": "waɪf", "translate": "vợ" },
+      "nephew": { "name": "nephew", "phonetic": "ˈnefjuː", "translate": "cháu trai" },
+      "niece": { "name": "niece", "phonetic": "niːs", "translate": "cháu gái" },
+      "parent": { "name": "parent", "phonetic": "ˈpeərənt", "translate": "cha mẹ" },
+      "sibling": { "name": "sibling", "phonetic": "ˈsɪblɪŋ", "translate": "anh chị em ruột" },
+      "child": { "name": "child", "phonetic": "tʃaɪld", "translate": "con" },
+      "twin": { "name": "twin", "phonetic": "twɪn", "translate": "sinh đôi" }
     }
   },
   "animals": {
     "topic_index": 1,
     "name": "Animals",
     "image": "assets/images/animals.png",
-    "length": 10,
+    "length": 20,
     "percent": 0,
     "words": {
       "cat": { "name": "cat", "phonetic": "kæt", "translate": "mèo" },
@@ -34,14 +44,24 @@
       "pig": { "name": "pig", "phonetic": "pɪɡ", "translate": "lợn" },
       "duck": { "name": "duck", "phonetic": "dʌk", "translate": "vịt" },
       "lion": { "name": "lion", "phonetic": "ˈlaɪən", "translate": "sư tử" },
-      "elephant": { "name": "elephant", "phonetic": "ˈɛlɪfənt", "translate": "voi" }
+      "elephant": { "name": "elephant", "phonetic": "ˈɛlɪfənt", "translate": "voi" },
+      "tiger": { "name": "tiger", "phonetic": "ˈtaɪɡər", "translate": "hổ" },
+      "rabbit": { "name": "rabbit", "phonetic": "ˈræbɪt", "translate": "thỏ" },
+      "monkey": { "name": "monkey", "phonetic": "ˈmʌŋki", "translate": "khỉ" },
+      "bear": { "name": "bear", "phonetic": "beər", "translate": "gấu" },
+      "chicken": { "name": "chicken", "phonetic": "ˈtʃɪkɪn", "translate": "gà" },
+      "sheep": { "name": "sheep", "phonetic": "ʃiːp", "translate": "cừu" },
+      "goat": { "name": "goat", "phonetic": "ɡəʊt", "translate": "dê" },
+      "frog": { "name": "frog", "phonetic": "frɒɡ", "translate": "ếch" },
+      "snake": { "name": "snake", "phonetic": "sneɪk", "translate": "rắn" },
+      "butterfly": { "name": "butterfly", "phonetic": "ˈbʌtəflaɪ", "translate": "bướm" }
     }
   },
   "food": {
     "topic_index": 2,
     "name": "Food",
     "image": "assets/images/food.png",
-    "length": 10,
+    "length": 20,
     "percent": 0,
     "words": {
       "rice": { "name": "rice", "phonetic": "raɪs", "translate": "cơm" },
@@ -53,14 +73,24 @@
       "apple": { "name": "apple", "phonetic": "ˈæpəl", "translate": "táo" },
       "banana": { "name": "banana", "phonetic": "bəˈnænə", "translate": "chuối" },
       "orange": { "name": "orange", "phonetic": "ˈɒrɪndʒ", "translate": "cam" },
-      "carrot": { "name": "carrot", "phonetic": "ˈkærət", "translate": "cà rốt" }
+      "carrot": { "name": "carrot", "phonetic": "ˈkærət", "translate": "cà rốt" },
+      "chicken": { "name": "chicken", "phonetic": "ˈtʃɪkɪn", "translate": "thịt gà" },
+      "fish": { "name": "fish", "phonetic": "fɪʃ", "translate": "cá" },
+      "potato": { "name": "potato", "phonetic": "pəˈteɪtəʊ", "translate": "khoai tây" },
+      "tomato": { "name": "tomato", "phonetic": "təˈmɑːtəʊ", "translate": "cà chua" },
+      "cheese": { "name": "cheese", "phonetic": "tʃiːz", "translate": "phô mai" },
+      "water": { "name": "water", "phonetic": "ˈwɔːtər", "translate": "nước" },
+      "juice": { "name": "juice", "phonetic": "dʒuːs", "translate": "nước ép" },
+      "cake": { "name": "cake", "phonetic": "keɪk", "translate": "bánh ngọt" },
+      "soup": { "name": "soup", "phonetic": "suːp", "translate": "súp" },
+      "salad": { "name": "salad", "phonetic": "ˈsæləd", "translate": "sa lát" }
     }
   },
   "colors": {
     "topic_index": 3,
     "name": "Colors",
     "image": "assets/images/colors.png",
-    "length": 10,
+    "length": 20,
     "percent": 0,
     "words": {
       "red": { "name": "red", "phonetic": "rɛd", "translate": "đỏ" },
@@ -72,14 +102,24 @@
       "pink": { "name": "pink", "phonetic": "pɪŋk", "translate": "hồng" },
       "orange": { "name": "orange", "phonetic": "ˈɒrɪndʒ", "translate": "cam" },
       "purple": { "name": "purple", "phonetic": "ˈpɜːpəl", "translate": "tím" },
-      "brown": { "name": "brown", "phonetic": "braʊn", "translate": "nâu" }
+      "brown": { "name": "brown", "phonetic": "braʊn", "translate": "nâu" },
+      "gray": { "name": "gray", "phonetic": "ɡreɪ", "translate": "xám" },
+      "silver": { "name": "silver", "phonetic": "ˈsɪlvər", "translate": "bạc" },
+      "gold": { "name": "gold", "phonetic": "ɡəʊld", "translate": "vàng kim" },
+      "beige": { "name": "beige", "phonetic": "beɪʒ", "translate": "be" },
+      "navy": { "name": "navy", "phonetic": "ˈneɪvi", "translate": "xanh navy" },
+      "turquoise": { "name": "turquoise", "phonetic": "ˈtɜːkwɔɪz", "translate": "xanh ngọc" },
+      "violet": { "name": "violet", "phonetic": "ˈvaɪələt", "translate": "tím hoa cà" },
+      "maroon": { "name": "maroon", "phonetic": "məˈruːn", "translate": "nâu đỏ" },
+      "lime": { "name": "lime", "phonetic": "laɪm", "translate": "xanh chanh" },
+      "cyan": { "name": "cyan", "phonetic": "ˈsaɪæn", "translate": "xanh lơ" }
     }
   },
   "school": {
     "topic_index": 4,
     "name": "School",
     "image": "assets/images/school.png",
-    "length": 10,
+    "length": 20,
     "percent": 0,
     "words": {
       "book": { "name": "book", "phonetic": "bʊk", "translate": "sách" },
@@ -91,7 +131,17 @@
       "chair": { "name": "chair", "phonetic": "tʃɛər", "translate": "ghế" },
       "teacher": { "name": "teacher", "phonetic": "ˈtiːtʃər", "translate": "giáo viên" },
       "student": { "name": "student", "phonetic": "ˈstjuːdənt", "translate": "học sinh" },
-      "school": { "name": "school", "phonetic": "skuːl", "translate": "trường học" }
+      "school": { "name": "school", "phonetic": "skuːl", "translate": "trường học" },
+      "eraser": { "name": "eraser", "phonetic": "ɪˈreɪzər", "translate": "cục tẩy" },
+      "notebook": { "name": "notebook", "phonetic": "ˈnəʊtbʊk", "translate": "vở" },
+      "classroom": { "name": "classroom", "phonetic": "ˈklɑːsruːm", "translate": "lớp học" },
+      "blackboard": { "name": "blackboard", "phonetic": "ˈblækbɔːd", "translate": "bảng đen" },
+      "chalk": { "name": "chalk", "phonetic": "tʃɔːk", "translate": "phấn" },
+      "exam": { "name": "exam", "phonetic": "ɪɡˈzæm", "translate": "bài kiểm tra" },
+      "homework": { "name": "homework", "phonetic": "ˈhəʊmwɜːk", "translate": "bài tập về nhà" },
+      "lesson": { "name": "lesson", "phonetic": "ˈlɛsən", "translate": "bài học" },
+      "library": { "name": "library", "phonetic": "ˈlaɪbrəri", "translate": "thư viện" },
+      "computer": { "name": "computer", "phonetic": "kəmˈpjuːtər", "translate": "máy tính" }
     }
   }
 }

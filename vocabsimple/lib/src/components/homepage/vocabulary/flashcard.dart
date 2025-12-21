@@ -19,10 +19,11 @@ class _FlashcardPageState extends State<FlashcardPage> {
   final List<Map<String, dynamic>> words = [];
   final FlutterTts flutterTts = FlutterTts();
   final PageController _pageController = PageController();
+
   final ProgressService _progressService = ProgressService();
+
   bool isLoading = true;
   int currentIndex = 0;
-
   @override
   void initState() {
     super.initState();
@@ -87,19 +88,27 @@ class _FlashcardPageState extends State<FlashcardPage> {
     // Sử dụng ProgressService để cập nhật tiến trình
     await _progressService.markWordAsLearned(widget.topic, word['name']);
 
-    // Cập nhật trong danh sách local
-    setState(() {
-      word['isLearned'] = 1;
-    });
+    // Cập nhật trong database
+    await LocalDatabaseService.markWordAsLearned(word['name']);
 
     // Lấy tiến trình mới từ ProgressService
     final newProgress = _progressService.getTopicProgress(widget.topic);
 
-    print(' Cập nhật tiến độ: ${widget.topic} - $newProgress%');
+    print('Cập nhật tiến độ: ${widget.topic} - $newProgress%');
+
+    final learnedCount = await LocalDatabaseService.countLearnedWords(
+      widget.topic,
+    );
+    final percent = ((learnedCount / words.length) * 100).round();
+    await LocalDatabaseService.updateTopicPercent(widget.topic, percent);
+
+    print(
+      'Cập nhật tiến độ: ${widget.topic} - $learnedCount/${words.length} từ = $percent%',
+    );
 
     // Force refresh UI để hiển thị tiến độ mới
     setState(() {
-      // Trigger rebuild để hiển thị tiến độ mới
+      word['isLearned'] = 1;
     });
 
     // Hiển thị thông báo
@@ -107,7 +116,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '✓ Đã học "${word['name']}" - Tiến độ: $newProgress%',
+            'Đã đánh dấu từ "${word['name']}" là đã học!',
             style: GoogleFonts.inter(fontWeight: FontWeight.w600),
           ),
           backgroundColor: Colors.green[600],
@@ -181,7 +190,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                   ),
                 ),
               ),
-
             // Main content
             Center(
               child: Column(
@@ -261,7 +269,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
               // Phát âm button
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
@@ -485,6 +492,69 @@ class _FlashcardPageState extends State<FlashcardPage> {
                       // Dots indicator
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          words.length > 10 ? 5 : words.length,
+                          (index) {
+                            if (words.length > 10) {
+                              // Show simplified dots for more than 10 words
+                              if (index == 2) {
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
+                                  child: Icon(
+                                    Icons.more_horiz,
+                                    size: 16,
+                                    color: Colors.grey[400],
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }
+                            // Show all dots for 10 or fewer words
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: currentIndex == index ? 24 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: currentIndex == index
+                                    ? Colors.blue[700]
+                                    : Colors.grey[300],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: currentIndex > 0 ? goToPreviousWord : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: currentIndex > 0
+                              ? Colors.blue[600]
+                              : Colors.grey[300],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: currentIndex > 0 ? 4 : 0,
+                        ),
+                        icon: const Icon(Icons.arrow_back_ios, size: 18),
+                        label: Text(
+                          'Trước',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                      // Dots indicator
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: List.generate(
                           words.length > 10 ? 5 : words.length,
                           (index) {

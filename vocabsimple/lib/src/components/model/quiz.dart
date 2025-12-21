@@ -15,7 +15,15 @@ class Quiz {
     this.hint,
   });
 
-  bool get isCorrect => userAnswer != null && userAnswer == correctAnswer;
+  bool get isCorrect {
+    if (userAnswer == null) return false;
+
+    // So sánh không phân biệt hoa thường và loại bỏ khoảng trắng thừa
+    final trimmedUserAnswer = userAnswer!.trim().toLowerCase();
+    final trimmedCorrectAnswer = correctAnswer.trim().toLowerCase();
+
+    return trimmedUserAnswer == trimmedCorrectAnswer;
+  }
 }
 
 class TestResult {
@@ -43,4 +51,3 @@ class TestResult {
     return 'Cần cố gắng';
   }
 }
-

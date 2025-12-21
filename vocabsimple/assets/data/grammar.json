@@ -131,6 +131,262 @@
       "Câu hỏi: Is there...? / Are there...?",
       "Dùng 'some' trong câu khẳng định, 'any' trong câu phủ định và nghi vấn"
     ]
+  },
+  "present_perfect": {
+    "id": "present_perfect",
+    "title": "Present Perfect (Hiện tại hoàn thành)",
+    "level": "intermediate",
+    "description": "Diễn tả hành động đã xảy ra trong quá khứ nhưng còn liên quan đến hiện tại",
+    "structure": {
+      "affirmative": "S + have/has + V3/V-ed + O",
+      "negative": "S + have/has + not + V3/V-ed + O",
+      "question": "Have/Has + S + V3/V-ed + O?"
+    },
+    "rules": [
+      "Dùng 'have' với I, you, we, they",
+      "Dùng 'has' với he, she, it",
+      "V3 là động từ cột 3 (bất quy tắc) hoặc V-ed (có quy tắc)"
+    ],
+    "examples": [
+      {"en": "I have finished my homework.", "vi": "Tôi đã hoàn thành bài tập."},
+      {"en": "She has lived here for 5 years.", "vi": "Cô ấy đã sống ở đây 5 năm."},
+      {"en": "They haven't seen that movie yet.", "vi": "Họ chưa xem bộ phim đó."},
+      {"en": "Have you ever been to London?", "vi": "Bạn đã từng đến London chưa?"}
+    ],
+    "notes": [
+      "Dùng với: just, already, yet, ever, never, recently, lately",
+      "Dùng với: for (khoảng thời gian), since (mốc thời gian)",
+      "Không dùng với thời gian cụ thể trong quá khứ (yesterday, last week...)"
+    ]
+  },
+  "past_continuous": {
+    "id": "past_continuous",
+    "title": "Past Continuous (Quá khứ tiếp diễn)",
+    "level": "intermediate",
+    "description": "Diễn tả hành động đang diễn ra tại một thời điểm trong quá khứ",
+    "structure": {
+      "affirmative": "S + was/were + V-ing + O",
+      "negative": "S + was/were + not + V-ing + O",
+      "question": "Was/Were + S + V-ing + O?"
+    },
+    "rules": [
+      "Dùng 'was' với I, he, she, it",
+      "Dùng 'were' với you, we, they",
+      "Thường kết hợp với Past Simple để diễn tả 2 hành động xen kẽ"
+    ],
+    "examples": [
+      {"en": "I was studying at 8 PM yesterday.", "vi": "Tôi đang học lúc 8 giờ tối hôm qua."},
+      {"en": "They were playing football when it rained.", "vi": "Họ đang chơi bóng thì trời mưa."},
+      {"en": "She wasn't listening to me.", "vi": "Cô ấy không nghe tôi nói."},
+      {"en": "Were you sleeping?", "vi": "Bạn có đang ngủ không?"}
+    ],
+    "notes": [
+      "Dùng với: at + thời gian cụ thể (at 8 PM), while, when",
+      "While + Past Continuous, Past Simple (hành động dài + hành động ngắn)",
+      "Diễn tả 2 hành động cùng xảy ra: S + was/were V-ing while S + was/were V-ing"
+    ]
+  },
+  "future_simple": {
+    "id": "future_simple",
+    "title": "Future Simple (Tương lai đơn)",
+    "level": "basic",
+    "description": "Diễn tả hành động sẽ xảy ra trong tương lai",
+    "structure": {
+      "affirmative": "S + will + V + O",
+      "negative": "S + will + not (won't) + V + O",
+      "question": "Will + S + V + O?"
+    },
+    "rules": [
+      "Will dùng cho tất cả các ngôi",
+      "Dùng để quyết định đột ngột, dự đoán, hứa hẹn",
+      "Shall chỉ dùng với I và We (ít dùng trong tiếng Anh hiện đại)"
+    ],
+    "examples": [
+      {"en": "I will call you tomorrow.", "vi": "Tôi sẽ gọi cho bạn ngày mai."},
+      {"en": "She will be 18 next year.", "vi": "Cô ấy sẽ 18 tuổi vào năm sau."},
+      {"en": "They won't come to the party.", "vi": "Họ sẽ không đến bữa tiệc."},
+      {"en": "Will you help me?", "vi": "Bạn sẽ giúp tôi chứ?"}
+    ],
+    "notes": [
+      "Dùng với: tomorrow, next (week/month/year), in the future, soon",
+      "Rút gọn: will = 'll, will not = won't",
+      "Be going to: dùng cho dự định, kế hoạch có sẵn"
+    ]
+  },
+  "modals": {
+    "id": "modals",
+    "title": "Modal Verbs (Động từ khuyết thiếu)",
+    "level": "intermediate",
+    "description": "Động từ khuyết thiếu diễn tả khả năng, sự cho phép, nghĩa vụ, lời khuyên",
+    "structure": {
+      "affirmative": "S + modal + V (nguyên mẫu) + O",
+      "negative": "S + modal + not + V + O",
+      "question": "Modal + S + V + O?"
+    },
+    "rules": [
+      "Can/Could: khả năng, sự cho phép, yêu cầu lịch sự",
+      "May/Might: khả năng, sự cho phép (trang trọng)",
+      "Must/Have to: nghĩa vụ, sự cần thiết",
+      "Should/Ought to: lời khuyên",
+      "Would: thói quen trong quá khứ, yêu cầu lịch sự"
+    ],
+    "examples": [
+      {"en": "I can speak English.", "vi": "Tôi có thể nói tiếng Anh."},
+      {"en": "You should study harder.", "vi": "Bạn nên học chăm chỉ hơn."},
+      {"en": "She must finish this today.", "vi": "Cô ấy phải hoàn thành việc này hôm nay."},
+      {"en": "May I go out?", "vi": "Tôi có thể ra ngoài không?"}
+    ],
+    "notes": [
+      "Sau modal verb luôn là động từ nguyên mẫu (không có 'to')",
+      "Không chia động từ theo ngôi",
+      "Must = have to (nhưng mustn't ≠ don't have to)"
+    ]
+  },
+  "conditionals": {
+    "id": "conditionals",
+    "title": "Conditional Sentences (Câu điều kiện)",
+    "level": "advanced",
+    "description": "Câu điều kiện diễn tả giả định và kết quả của nó",
+    "structure": {
+      "type_0": "If + S + V (hiện tại), S + V (hiện tại) - Chân lý",
+      "type_1": "If + S + V (hiện tại), S + will + V - Có thể xảy ra",
+      "type_2": "If + S + V-ed/V2, S + would + V - Không có thật ở hiện tại",
+      "type_3": "If + S + had + V3, S + would have + V3 - Không có thật ở quá khứ"
+    },
+    "rules": [
+      "Type 0: Sự thật hiển nhiên, chân lý",
+      "Type 1: Điều kiện có thể xảy ra trong tương lai",
+      "Type 2: Điều kiện không có thật ở hiện tại hoặc tương lai",
+      "Type 3: Điều kiện không có thật trong quá khứ"
+    ],
+    "examples": [
+      {"en": "If you heat water to 100°C, it boils.", "vi": "Nếu đun nước đến 100°C, nó sẽ sôi."},
+      {"en": "If it rains tomorrow, I will stay home.", "vi": "Nếu ngày mai mưa, tôi sẽ ở nhà."},
+      {"en": "If I were rich, I would travel the world.", "vi": "Nếu tôi giàu, tôi sẽ đi du lịch vòng quanh thế giới."},
+      {"en": "If I had studied harder, I would have passed.", "vi": "Nếu tôi đã học chăm hơn, tôi đã đậu rồi."}
+    ],
+    "notes": [
+      "Có thể đảo ngược vị trí 2 mệnh đề (bỏ dấu phẩy nếu mệnh đề If ở sau)",
+      "Type 2: dùng 'were' cho tất cả các ngôi (If I were you...)",
+      "Unless = If not (Nếu không)"
+    ]
+  },
+  "passive_voice": {
+    "id": "passive_voice",
+    "title": "Passive Voice (Câu bị động)",
+    "level": "intermediate",
+    "description": "Câu bị động nhấn mạnh hành động hơn là người thực hiện",
+    "structure": {
+      "present_simple": "S + am/is/are + V3/V-ed",
+      "past_simple": "S + was/were + V3/V-ed",
+      "present_perfect": "S + have/has + been + V3/V-ed",
+      "future_simple": "S + will + be + V3/V-ed",
+      "modal": "S + modal + be + V3/V-ed"
+    },
+    "rules": [
+      "Chuyển tân ngữ (O) thành chủ ngữ (S)",
+      "Thêm 'be' + V3/V-ed",
+      "Chủ ngữ cũ có thể bỏ hoặc thêm 'by + O'"
+    ],
+    "examples": [
+      {"en": "The book is read by many people.", "vi": "Cuốn sách được đọc bởi nhiều người."},
+      {"en": "The house was built in 1990.", "vi": "Ngôi nhà được xây năm 1990."},
+      {"en": "English has been taught for years.", "vi": "Tiếng Anh đã được dạy nhiều năm."},
+      {"en": "The work will be finished tomorrow.", "vi": "Công việc sẽ được hoàn thành ngày mai."}
+    ],
+    "notes": [
+      "Dùng khi không biết hoặc không quan trọng ai thực hiện hành động",
+      "Nhấn mạnh hành động hoặc đối tượng chịu tác động",
+      "Không thể chuyển câu bị động với: have (có), lack, resemble, suit"
+    ]
+  },
+  "comparative_superlative": {
+    "id": "comparative_superlative",
+    "title": "So sánh (Comparative & Superlative)",
+    "level": "basic",
+    "description": "So sánh hơn và so sánh nhất của tính từ và trạng từ",
+    "structure": {
+      "comparative_short": "Adj/Adv + er + than",
+      "comparative_long": "more + Adj/Adv + than",
+      "superlative_short": "the + Adj/Adv + est",
+      "superlative_long": "the most + Adj/Adv",
+      "as_as": "as + Adj/Adv + as (bằng nhau)"
+    },
+    "rules": [
+      "Tính từ ngắn (1 âm tiết): thêm -er/-est",
+      "Tính từ dài (2+ âm tiết): dùng more/most",
+      "Tính từ 2 âm tiết kết thúc -y: đổi y → ier/iest",
+      "Bất quy tắc: good → better → best, bad → worse → worst"
+    ],
+    "examples": [
+      {"en": "She is taller than me.", "vi": "Cô ấy cao hơn tôi."},
+      {"en": "This book is more interesting than that one.", "vi": "Cuốn sách này thú vị hơn cuốn kia."},
+      {"en": "He is the smartest student in class.", "vi": "Anh ấy là học sinh thông minh nhất lớp."},
+      {"en": "This is the most beautiful place I've ever seen.", "vi": "Đây là nơi đẹp nhất tôi từng thấy."}
+    ],
+    "notes": [
+      "Gấp đôi phụ âm cuối với: big → bigger → biggest",
+      "So sánh kép: The + comparative, the + comparative (càng... càng...)",
+      "So sánh bằng phủ định: not as/so + adj + as"
+    ]
+  },
+  "articles": {
+    "id": "articles",
+    "title": "Articles (Mạo từ: a/an/the)",
+    "level": "basic",
+    "description": "Mạo từ dùng trước danh từ để xác định tính xác định/không xác định",
+    "structure": {
+      "indefinite_a": "a + danh từ số ít (phụ âm)",
+      "indefinite_an": "an + danh từ số ít (nguyên âm)",
+      "definite": "the + danh từ (xác định)",
+      "zero": "Không dùng mạo từ với danh từ số nhiều/không đếm được chung chung"
+    },
+    "rules": [
+      "a/an: dùng khi nhắc lần đầu, không xác định cụ thể",
+      "the: dùng khi đã nhắc trước đó, hoặc duy nhất, hoặc cả 2 bên đều biết",
+      "an: dùng trước nguyên âm (a, e, i, o, u)",
+      "Không dùng mạo từ: tên riêng, môn học, bữa ăn, thể thao"
+    ],
+    "examples": [
+      {"en": "I saw a cat. The cat was black.", "vi": "Tôi thấy một con mèo. Con mèo đó màu đen."},
+      {"en": "She is an engineer.", "vi": "Cô ấy là kỹ sư."},
+      {"en": "The sun rises in the east.", "vi": "Mặt trời mọc ở phía đông."},
+      {"en": "I love music.", "vi": "Tôi yêu âm nhạc."}
+    ],
+    "notes": [
+      "Dùng 'the' với: biển, sông, dãy núi, sa mạc, quần đảo",
+      "Không dùng 'the' với: hồ, núi đơn lẻ, châu lục, quốc gia (hầu hết)",
+      "Dùng 'a/an' khi nói về nghề nghiệp"
+    ]
+  },
+  "prepositions": {
+    "id": "prepositions",
+    "title": "Prepositions (Giới từ)",
+    "level": "intermediate",
+    "description": "Giới từ chỉ thời gian, nơi chốn, và mối quan hệ",
+    "structure": {
+      "time": "at (giờ), on (ngày), in (tháng/năm)",
+      "place": "at (điểm), on (bề mặt), in (không gian)",
+      "direction": "to, into, from, towards",
+      "others": "for, since, during, by, with..."
+    },
+    "rules": [
+      "Thời gian: at + giờ, on + ngày/thứ, in + tháng/năm/thế kỷ",
+      "Nơi chốn: at + địa điểm cụ thể, in + không gian rộng, on + bề mặt",
+      "For + khoảng thời gian, Since + mốc thời gian",
+      "By + phương tiện (không có 'the'): by car, by bus"
+    ],
+    "examples": [
+      {"en": "I wake up at 6 AM.", "vi": "Tôi thức dậy lúc 6 giờ sáng."},
+      {"en": "He was born in 1995.", "vi": "Anh ấy sinh năm 1995."},
+      {"en": "The book is on the table.", "vi": "Cuốn sách ở trên bàn."},
+      {"en": "She lives in New York.", "vi": "Cô ấy sống ở New York."}
+    ],
+    "notes": [
+      "At night, in the morning/afternoon/evening",
+      "On time (đúng giờ) vs In time (kịp giờ)",
+      "Arrive at (địa điểm nhỏ) vs Arrive in (thành phố/quốc gia)"
+    ]
   }
 }
 

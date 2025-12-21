@@ -14,6 +14,7 @@ class GrammarListPage extends StatefulWidget {
 class _GrammarListPageState extends State<GrammarListPage> {
   List<Grammar> grammarList = [];
   bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -22,11 +23,32 @@ class _GrammarListPageState extends State<GrammarListPage> {
   }
 
   Future<void> loadGrammarData() async {
-    final data = await GrammarService.loadGrammar();
-    setState(() {
-      grammarList = data;
-      isLoading = false;
-    });
+    try {
+      final data = await GrammarService.loadGrammar();
+      if (!mounted) return;
+
+      if (data.isEmpty) {
+        setState(() {
+          grammarList = [];
+          isLoading = false;
+          errorMessage =
+              'Không thể tải dữ liệu ngữ pháp. Vui lòng thử lại sau.';
+        });
+      } else {
+        setState(() {
+          grammarList = data;
+          isLoading = false;
+          errorMessage = null;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        grammarList = [];
+        isLoading = false;
+        errorMessage = 'Lỗi: $e';
+      });
+    }
   }
 
   Color getLevelColor(String level) {
@@ -57,13 +79,16 @@ class _GrammarListPageState extends State<GrammarListPage> {
 
   Widget buildGrammarCard(Grammar grammar) {
     final levelColor = getLevelColor(grammar.level);
-    
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => GrammarDetailPage(grammar: grammar),
+            builder: (context) => GrammarDetailPage(
+              grammar: grammar,
+              allGrammarTopics: grammarList,
+            ),
           ),
         );
       },
@@ -134,7 +159,10 @@ class _GrammarListPageState extends State<GrammarListPage> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: levelColor,
                       borderRadius: BorderRadius.circular(12),
@@ -149,7 +177,11 @@ class _GrammarListPageState extends State<GrammarListPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey[400],
+                  ),
                 ],
               ),
             ],
@@ -172,7 +204,7 @@ class _GrammarListPageState extends State<GrammarListPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Học ngữ pháp',
+          'Learn Grammar',
           style: GoogleFonts.poppins(
             color: Colors.black87,
             fontSize: 20,
@@ -182,12 +214,60 @@ class _GrammarListPageState extends State<GrammarListPage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : errorMessage != null
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      errorMessage!,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          isLoading = true;
+                          errorMessage = null;
+                        });
+                        loadGrammarData();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: Text('Thử lại', style: GoogleFonts.inter()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple[600],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : grammarList.isEmpty
+          ? Center(
+              child: Text(
+                'Không có dữ liệu ngữ pháp',
+                style: GoogleFonts.inter(fontSize: 16, color: Colors.grey[600]),
+              ),
+            )
           : ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 12),
               itemCount: grammarList.length,
-              itemBuilder: (context, index) => buildGrammarCard(grammarList[index]),
+              itemBuilder: (context, index) =>
+                  buildGrammarCard(grammarList[index]),
             ),
     );
   }
 }
-

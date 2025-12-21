@@ -13,7 +13,6 @@ class DatabaseHelper {
     final exists = await databaseExists(path);
 
     if (!exists) {
-      print('📦 Copy database từ assets...');
       
       // Tạo thư mục nếu chưa có
       try {
@@ -25,9 +24,7 @@ class DatabaseHelper {
       List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
       await File(path).writeAsBytes(bytes, flush: true);
       
-      print('✅ Database đã copy xong!');
     } else {
-      print('✓ Database đã tồn tại');
     }
 
     return await openDatabase(path);
