@@ -526,31 +526,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
                           },
                         ),
                       ),
-                      ElevatedButton.icon(
-                        onPressed: currentIndex > 0 ? goToPreviousWord : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: currentIndex > 0
-                              ? Colors.blue[600]
-                              : Colors.grey[300],
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: currentIndex > 0 ? 4 : 0,
-                        ),
-                        icon: const Icon(Icons.arrow_back_ios, size: 18),
-                        label: Text(
-                          'Trước',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
 
                       // Dots indicator
                       Row(
