@@ -208,6 +208,13 @@ class ProgressService {
     return words.length;
   }
 
+  List<String> getCompletedTopics() {
+    return _topicProgress.entries
+        .where((entry) => entry.value >= 100)
+        .map((entry) => entry.key)
+        .toList();
+  }
+
   /// Reset toàn bộ tiến trình
   Future<void> resetAllProgress() async {
     // Xóa tất cả dữ liệu vocabulary
