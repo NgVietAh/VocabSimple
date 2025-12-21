@@ -23,8 +23,6 @@ jobs:
 
           # 2. THỐNG KÊ CONTRIBUTORS (Mục 3)
           CONTRIBUTORS_ROWS=""
-          JS_LABELS=""
-          JS_DATA_COMMITS=""
           AUTHORS=$(git log --format='%ae' | sort -u)
           for EMAIL in $AUTHORS; do
             NAME=$(git log --author="$EMAIL" --format='%an' -1)
@@ -34,12 +32,10 @@ jobs:
             LOC_SUB=$(echo $STATS | awk '{print $2}'); [ -z "$LOC_SUB" ] && LOC_SUB=0
             F_COUNT=$(git log --author="$EMAIL" --name-only --pretty=format: | sort -u | sed '/^\s*$/d' | wc -l)
             
-            # Đếm số PR thực tế (số nguyên)
+            # Đếm số PR thực tế (Số lượng lần Merge)
             PR_COUNT=$(git log --author="$EMAIL" --grep="Merge pull request\|(#[0-9]*) " --count HEAD)
             
-            CONTRIBUTORS_ROWS+="<tr><td><b>$NAME</b></td><td>$C_COUNT</td><td><span style='color:green'>+$LOC_ADD</span></td><td><span style='color:red'>-$LOC_SUB</span></td><td>$F_COUNT</td><td>$PR_COUNT</td></tr>"
-            JS_LABELS+="\"$NAME\","
-            JS_DATA_COMMITS+="$C_COUNT,"
+            CONTRIBUTORS_ROWS+="<tr><td><b>$NAME</b></td><td>$C_COUNT</td><td><span style='color:green'>+$LOC_ADD</span></td><td><span style='color:red'>-$LOC_SUB</span></td><td>$F_COUNT</td><td><b>$PR_COUNT</b></td></tr>"
           done
 
           # 3. TIMELINE THEO TUẦN (Mục 4)
@@ -52,29 +48,34 @@ jobs:
             WEEKLY_DATA+="$W_COUNT,"
           done
 
-          # 4. CODE OWNERSHIP (Mục 5) - Quét các file .dart quan trọng trong lib/
+          # 4. CODE OWNERSHIP (Mục 5) - Hiển thị rõ ràng Module và %
           OWNERSHIP_ROWS=""
-          FILES=$(find lib -name "*.dart" ! -name "*.g.dart" | xargs du | sort -rn | head -n 10 | awk '{print $2}')
+          IDX_OWN=0
+          FILES=$(find lib -name "*.dart" ! -name "*.g.dart" | xargs du | sort -rn | head -n 15 | awk '{print $2}')
           for file in $FILES; do
             if [ -f "$file" ]; then
+              CLASS_OWN=""
+              [ $IDX_OWN -ge 6 ] && CLASS_OWN="own-hidden"
+              
               OWNER=$(git blame --line-porcelain "$file" | grep "^author " | sort | uniq -c | sort -rn | head -1 | sed 's/^.*author //')
               TOTAL_LINES=$(wc -l < "$file")
               OWNER_LINES=$(git blame --line-porcelain "$file" | grep "^author $OWNER" | wc -l)
               PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$TOTAL_LINES)*100}")
-              # Làm đẹp tên Module
               MOD_NAME=$(basename "$file")
-              OWNERSHIP_ROWS+="<tr><td><code>$file</code><br><small>Module: $MOD_NAME</small></td><td>$OWNER</td><td><b>$PERCENT%</b></td></tr>"
+              
+              OWNERSHIP_ROWS+="<tr class='$CLASS_OWN'><td><code>$file</code></td><td>$OWNER</td><td><div style='background:#eee;width:120px;height:12px;display:inline-block;border-radius:6px;vertical-align:middle;margin-right:8px;overflow:hidden'><div style='background:#1a73e8;width:$PERCENT%;height:100%'></div></div> <b>$PERCENT%</b></td></tr>"
+              IDX_OWN=$((IDX_OWN+1))
             fi
           done
 
           # 5. SUMMARY OF PULL REQUESTS (Mục 6)
           PR_HISTORY_ROWS=""
-          IDX=0
+          IDX_PR=0
           while read -r hash date msg; do
-            CLASS=""
-            [ $IDX -ge 5 ] && CLASS="pr-hidden"
-            PR_HISTORY_ROWS+="<tr class='$CLASS'><td><code>$hash</code></td><td>$date</td><td>$msg</td></tr>"
-            IDX=$((IDX+1))
+            CLASS_PR=""
+            [ $IDX_PR -ge 5 ] && CLASS_PR="pr-hidden"
+            PR_HISTORY_ROWS+="<tr class='$CLASS_PR'><td><code>$hash</code></td><td><small>$date</small></td><td>$msg</td></tr>"
+            IDX_PR=$((IDX_PR+1))
           done < <(git log --grep="Merge pull request\|(#[0-9]*) " --pretty=format:"%h %as %s")
 
           # 6. TẠO FILE HTML
@@ -83,20 +84,22 @@ jobs:
           <html>
           <head>
               <meta charset="UTF-8">
-              <title>Git Report Group 10</title>
+              <title>Git Final Report - Group 10</title>
               <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
               <style>
-                  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 30px; color: #333; }
-                  .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.1); }
-                  h1 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
-                  h2 { background: #e8f0fe; padding: 12px; color: #1967d2; border-radius: 5px; margin-top: 35px; }
-                  table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                  th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; }
-                  th { background: #f8f9fa; }
-                  .pr-hidden { display: none; }
-                  .btn-more { width: 100%; padding: 10px; background: #fff; border: 1px solid #1a73e8; color: #1a73e8; cursor: pointer; border-radius: 5px; font-weight: bold; margin-top: 10px; }
-                  .btn-more:hover { background: #1a73e8; color: #fff; }
-                  code { color: #d93025; background: #fef0f0; padding: 2px 5px; border-radius: 3px; font-size: 13px; }
+                  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; padding: 20px; color: #1c1e21; }
+                  .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
+                  h1 { text-align: center; color: #1a73e8; font-size: 2.2em; margin-bottom: 30px; border-bottom: 2px solid #e4e6eb; padding-bottom: 15px; }
+                  h2 { background: #e7f3ff; color: #1877f2; padding: 12px 20px; border-radius: 8px; font-size: 1.2em; margin-top: 40px; display: flex; align-items: center; }
+                  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px; background: #f7f8fa; padding: 20px; border-radius: 8px; }
+                  table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; }
+                  th, td { border: 1px solid #ebedf0; padding: 14px; text-align: left; font-size: 14px; }
+                  th { background: #f5f6f7; color: #606770; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+                  .pr-hidden, .own-hidden { display: none; }
+                  .btn-view { width: 100%; padding: 12px; background: #fff; border: 1px solid #1a73e8; color: #1a73e8; cursor: pointer; border-radius: 6px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
+                  .btn-view:hover { background: #e7f3ff; }
+                  code { font-family: 'SFMono-Regular', Consolas, monospace; color: #e83e8c; background: #f8f9fa; padding: 3px 6px; border-radius: 4px; font-size: 13px; }
+                  .chart-box { height: 300px; margin: 20px 0; }
               </style>
           </head>
           <body>
@@ -104,57 +107,69 @@ jobs:
                   <h1>📊 GIT PROJECT REPORT - GROUP 10</h1>
 
                   <h2>1. Project Information</h2>
-                  <p><b>Project Name:</b> Ứng dụng học từ vựng tiếng Anh</p>
-                  <p><b>Group:</b> 10 | <b>Tech:</b> Flutter, Firebase</p>
-                  <ul>
-                      <li>Nguyễn Việt Anh – 123210027 – Leader</li>
-                      <li>Trịnh Minh Ánh – 123210028 – Member</li>
-                      <li>Nguyễn Hữu Hưng – 123210136 – Member</li>
-                  </ul>
+                  <div class="info-grid">
+                      <div>
+                          <p><b>Project Name:</b> Ứng dụng học từ vựng tiếng Anh</p>
+                          <p><b>Group Number:</b> 10</p>
+                          <p><b>Technologies:</b> Flutter, Firebase</p>
+                      </div>
+                      <div>
+                          <p><b>Members:</b></p>
+                          <ul style="margin:0; padding-left:18px; font-size: 14px;">
+                              <li>Nguyễn Việt Anh (123210027) - Leader</li>
+                              <li>Trịnh Minh Ánh (123210028) - Member</li>
+                              <li>Nguyễn Hữu Hưng (123210136) - Member</li>
+                          </ul>
+                      </div>
+                  </div>
 
                   <h2>2. Repository Information</h2>
-                  <p><b>URL:</b> <a href="https://github.com/NgVietAh/VocabSimple">VocabSimple Repository</a></p>
-                  <p><b>Total Commits:</b> $TOTAL_COMMITS</p>
+                  <p><b>URL:</b> <a href="https://github.com/NgVietAh/VocabSimple" target="_blank">VocabSimple GitHub Repo</a></p>
+                  <p><b>Total Project Commits:</b> $TOTAL_COMMITS</p>
 
                   <h2>3. Individual Contribution Summary</h2>
                   <table>
-                      <thead><tr><th>Member</th><th>Commits</th><th>LOC+</th><th>LOC-</th><th>Files</th><th>PRs</th></tr></thead>
+                      <thead><tr><th>Member</th><th>Commits</th><th>LOC+</th><th>LOC-</th><th>Files</th><th>PRs (Merged)</th></tr></thead>
                       <tbody>$CONTRIBUTORS_ROWS</tbody>
                   </table>
 
                   <h2>4. Contribution Timeline</h2>
-                  <canvas id="timeChart" style="height:250px"></canvas>
+                  <div class="chart-box"><canvas id="timelineChart"></canvas></div>
 
                   <h2>5. Code Ownership Map (Key Modules)</h2>
                   <table>
                       <thead><tr><th>Module Path</th><th>Primary Owner</th><th>Ownership (%)</th></tr></thead>
                       <tbody>$OWNERSHIP_ROWS</tbody>
                   </table>
+                  <button class="btn-view" id="btnOwn" onclick="toggleRows('.own-hidden', 'btnOwn')">Xem thêm Modules</button>
 
                   <h2>6. Summary of Pull Requests</h2>
                   <table>
-                      <thead><tr><th>Hash</th><th>Date</th><th>Merge Title</th></tr></thead>
-                      <tbody id="prTableBody">$PR_HISTORY_ROWS</tbody>
+                      <thead><tr><th>Hash</th><th>Date</th><th>Merge Message</th></tr></thead>
+                      <tbody id="prBody">$PR_HISTORY_ROWS</tbody>
                   </table>
-                  <button class="btn-more" id="btnMorePr" onclick="showMorePR()">Xem thêm Pull Requests</button>
+                  <button class="btn-view" id="btnPr" onclick="toggleRows('.pr-hidden', 'btnPr')">Xem nhiều hơn Pull Requests</button>
 
-                  <h2>7. Tools Used</h2>
-                  <p>GitHub Actions, Git Blame Analysis, Chart.js.</p>
+                  <p style="text-align:center; color: #8d949e; margin-top: 50px; font-size: 12px;">Generated automatically via GitHub Actions</p>
               </div>
 
               <script>
-                  new Chart(document.getElementById('timeChart'), {
+                  // Timeline Chart
+                  new Chart(document.getElementById('timelineChart'), {
                       type: 'line',
                       data: {
                           labels: [$WEEKLY_LABELS],
-                          datasets: [{ label: 'Activity', data: [$WEEKLY_DATA], borderColor: '#1a73e8', tension: 0.3, fill: true, backgroundColor: 'rgba(26, 115, 232, 0.1)' }]
+                          datasets: [{ label: 'Commits', data: [$WEEKLY_DATA], borderColor: '#1877f2', backgroundColor: 'rgba(24, 119, 242, 0.1)', fill: true, tension: 0.4 }]
                       },
                       options: { responsive: true, maintainAspectRatio: false }
                   });
 
-                  function showMorePR() {
-                      document.querySelectorAll('.pr-hidden').forEach(el => el.classList.remove('pr-hidden'));
-                      document.getElementById('btnMorePr').style.display = 'none';
+                  // Toggle Function
+                  function toggleRows(className, btnId) {
+                      const hiddenRows = document.querySelectorAll(className);
+                      hiddenRows.forEach(row => row.style.display = row.style.display === 'table-row' ? 'none' : 'table-row');
+                      const btn = document.getElementById(btnId);
+                      btn.innerText = btn.innerText.includes('Xem thêm') || btn.innerText.includes('Xem nhiều') ? 'Thu gọn' : (btnId === 'btnOwn' ? 'Xem thêm Modules' : 'Xem nhiều hơn Pull Requests');
                   }
               </script>
           </body>
