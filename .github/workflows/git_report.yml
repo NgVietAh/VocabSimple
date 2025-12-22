@@ -16,14 +16,14 @@ jobs:
 
       - name: Generate Git Report
         run: |
-          # 1. ĐỊNH NGHĨA ĐƯỜNG DẪN
+          # --- Cấu hình biến ---
           PROJECT_DIR="vocabsimple"
           SEARCH_PATH="$PROJECT_DIR/lib"
 
-          # 2. THÔNG TIN CƠ BẢN
+          # 1. THỐNG KÊ CHUNG
           TOTAL_COMMITS=$(git rev-list --count HEAD)
 
-          # 3. THỐNG KÊ CONTRIBUTORS
+          # 2. THỐNG KÊ CONTRIBUTORS (Mục 3)
           CONTRIBUTORS_ROWS=""
           AUTHORS=$(git log --format='%ae' | sort -u)
           for EMAIL in $AUTHORS; do
@@ -36,7 +36,7 @@ jobs:
             CONTRIBUTORS_ROWS+="<tr><td><b>$NAME</b></td><td>$C_COUNT</td><td><span style='color:green'>+$LOC_ADD</span></td><td><span style='color:red'>-$LOC_SUB</span></td><td>$F_COUNT</td></tr>"
           done
 
-          # 4. TIMELINE THEO TUẦN
+          # 3. TIMELINE THEO TUẦN (Mục 4)
           WEEKLY_LABELS=""
           WEEKLY_DATA=""
           for i in {7..0..-1}; do
@@ -48,126 +48,158 @@ jobs:
           WEEKLY_LABELS=$(echo $WEEKLY_LABELS | sed 's/, $//')
           WEEKLY_DATA=$(echo $WEEKLY_DATA | sed 's/, $//')
 
-          # 5. CODE OWNERSHIP CHI TIẾT ĐẾN TỪNG FILE
+          # 4. CODE OWNERSHIP (Mục 5 - Max depth 15)
           OWNERSHIP_ROWS=""
           if [ -d "$SEARCH_PATH" ]; then
-            # Tìm tất cả file .dart
-            ALL_FILES=$(find "$SEARCH_PATH" -maxdepth 10 -name "*.dart" -type f)
-            
+            ALL_FILES=$(find "$SEARCH_PATH" -maxdepth 15 -name "*.dart" -type f)
             while read -r file; do
               FILE_LINES=$(wc -l < "$file")
               if [ "$FILE_LINES" -gt 0 ]; then
-                # Lấy Owner thực tế dựa trên số dòng đóng góp trong file
                 OWNER=$(git blame --line-porcelain "$file" | grep "^author " | sort | uniq -c | sort -rn | head -1 | sed 's/^.*author //')
                 OWNER_LINES=$(git blame --line-porcelain "$file" | grep "^author $OWNER" | wc -l)
                 PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$FILE_LINES)*100}")
-                
-                # Rút gọn tên file để hiển thị
                 DISPLAY_NAME=$(echo "$file" | sed "s|$PROJECT_DIR/||")
-                
-                OWNERSHIP_ROWS+="<tr class='ownership-row'><td><span class='folder-badge'>$DISPLAY_NAME</span></td><td>$OWNER</td><td><div class='progress-container'><div class='progress-bar' style='width: $PERCENT%'></div></div><span class='percent-text'>$PERCENT%</span></td></tr>"
+                OWNERSHIP_ROWS+="<tr class='own-row'><td><code>$DISPLAY_NAME</code></td><td>$OWNER</td><td><div style='background:#eee; width:60px; height:8px; display:inline-block; border-radius:4px;'><div style='background:#34a853; width:$PERCENT%; height:100%; border-radius:4px;'></div></div> $PERCENT%</td></tr>"
               fi
             done <<< "$ALL_FILES"
           fi
 
-          # 6. TẠO HTML
+          # 5. PULL REQUESTS (Mục 6)
+          PR_ROWS=""
+          git log --grep="Merge" --pretty=format:"%h|%as|%an|%s" -n 30 > pr_logs.txt
+          while IFS="|" read -r hash date author msg; do
+            safe_msg=$(echo "$msg" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            PR_ROWS+="<tr class='pr-row'><td><code>$hash</code></td><td>$date</td><td>$author</td><td>$safe_msg</td></tr>"
+          done < pr_logs.txt
+
+          # 6. TẠO FILE HTML HOÀN CHỈNH
           cat <<EOF > git-report.html
           <!DOCTYPE html>
-          <html lang="vi">
+          <html>
           <head>
-            <meta charset="UTF-8">
-            <style>
-              body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; color: #333; padding: 20px; }
-              .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-              h1 { color: #1a73e8; text-align: center; margin-bottom: 30px; }
-              .info-grid { display: grid; grid-template-columns: 1fr 1fr; background: #e7f3ff; padding: 20px; border-radius: 10px; margin-bottom: 25px; }
-              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-              th { background: #f8f9fa; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: left; font-size: 0.9em; }
-              td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 0.85em; }
-              .folder-badge { background: #f0f2f5; padding: 3px 8px; border-radius: 4px; font-family: 'Consolas', monospace; color: #1a73e8; }
-              .progress-container { background: #eee; width: 80px; height: 8px; display: inline-block; border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 8px; }
-              .progress-bar { background: #34a853; height: 100%; }
-              .percent-text { font-weight: bold; color: #34a853; }
-              .hidden { display: none !important; }
-              .btn-show-more { display: block; width: 250px; margin: 25px auto; padding: 12px; background: #1a73e8; color: white; text-align: center; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
-              .btn-show-more:hover { background: #1557b0; box-shadow: 0 4px 12px rgba(26,115,232,0.3); }
-            </style>
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+              <meta charset="UTF-8">
+              <title>Git Final Report - Group 10</title>
+              <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+              <style>
+                  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; padding: 20px; color: #1c1e21; }
+                  .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
+                  h1 { text-align: center; color: #1a73e8; font-size: 2.2em; margin-bottom: 30px; border-bottom: 2px solid #e4e6eb; padding-bottom: 15px; }
+                  h2 { background: #e7f3ff; color: #1877f2; padding: 12px 20px; border-radius: 8px; font-size: 1.2em; margin-top: 40px; display: flex; align-items: center; }
+                  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px; background: #f7f8fa; padding: 20px; border-radius: 8px; }
+                  table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; }
+                  th, td { border: 1px solid #ebedf0; padding: 14px; text-align: left; font-size: 13px; }
+                  th { background: #f5f6f7; color: #606770; font-weight: 600; text-transform: uppercase; font-size: 11px; }
+                  .pr-hidden, .own-hidden { display: none; }
+                  .btn-view { width: 100%; padding: 12px; background: #fff; border: 1px solid #1a73e8; color: #1a73e8; cursor: pointer; border-radius: 6px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
+                  .btn-view:hover { background: #e7f3ff; }
+                  code { font-family: 'SFMono-Regular', Consolas, monospace; color: #e83e8c; background: #f8f9fa; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+                  .chart-box { height: 300px; margin: 20px 0; }
+                  .tool-badge { background: #333; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin-right: 5px; }
+              </style>
           </head>
           <body>
-            <div class="container">
-              <h1>📊 BÁO CÁO CẤU TRÚC & ĐÓNG GÓP CHI TIẾT</h1>
-              
-              <div class="info-grid">
-                <div><p><b>Dự án:</b> VocabSimple</p><p><b>Phạm vi:</b> $SEARCH_PATH (Cấp 15)</p></div>
-                <div><p><b>Tổng Commits:</b> $TOTAL_COMMITS</p><p><b>Cập nhật:</b> $(date '+%H:%M - %d/%m/%Y')</p></div>
+              <div class="container">
+                  <h1>📊 GIT PROJECT REPORT - GROUP 10</h1>
+
+                  <h2>1. Project Information</h2>
+                  <div class="info-grid">
+                      <div>
+                          <p><b>Project Name:</b> Ứng dụng học từ vựng tiếng Anh (VocabSimple)</p>
+                          <p><b>Group Number:</b> 10</p>
+                          <p><b>Technologies:</b> Flutter, Firebase</p>
+                      </div>
+                      <div>
+                          <p><b>Members:</b></p>
+                          <ul style="margin:0; padding-left:18px; font-size: 14px;">
+                              <li>Nguyễn Việt Anh (123210027) - Leader</li>
+                              <li>Trịnh Minh Ánh (123210028) - Member</li>
+                              <li>Nguyễn Hữu Hưng (123210136) - Member</li>
+                          </ul>
+                      </div>
+                  </div>
+
+                  <h2>2. Repository Information</h2>
+                  <p><b>URL:</b> <a href="https://github.com/NgVietAh/VocabSimple" target="_blank">VocabSimple GitHub Repo</a></p>
+                  <p><b>Total Project Commits:</b> $TOTAL_COMMITS</p>
+                  <p><b>Branching Strategy:</b> Feature Branch / Main-only</p>
+
+                  <h2>3. Individual Contribution Summary</h2>
+                  <table>
+                      <thead><tr><th>Member</th><th>Commits</th><th>Added</th><th>Removed</th><th>Files</th></tr></thead>
+                      <tbody>$CONTRIBUTORS_ROWS</tbody>
+                  </table>
+
+                  <h2>4. Contribution Timeline</h2>
+                  <div class="chart-box"><canvas id="timelineChart"></canvas></div>
+
+                  <h2>5. Code Ownership Map (Depth 15)</h2>
+                  <table id="ownTable">
+                      <thead><tr><th>File Path</th><th>Owner</th><th>Contribution</th></tr></thead>
+                      <tbody>$OWNERSHIP_ROWS</tbody>
+                  </table>
+                  <button id="btnOwn" class="btn-view" onclick="toggleRows('own')">Xem thêm file...</button>
+
+                  <h2>6. Summary of Pull Requests</h2>
+                  <table id="prTable">
+                      <thead><tr><th>Hash</th><th>Date</th><th>Author</th><th>Message</th></tr></thead>
+                      <tbody>$PR_ROWS</tbody>
+                  </table>
+                  <button id="btnPr" class="btn-view" onclick="toggleRows('pr')">Xem thêm PR...</button>
+
+                  <h2>7. Tools Used for Reporting</h2>
+                  <div style="margin-top:15px;">
+                      <span class="tool-badge">GitHub Actions</span>
+                      <span class="tool-badge">Git Blame Engine</span>
+                      <span class="tool-badge">Chart.js</span>
+                      <span class="tool-badge">Shell Automation</span>
+                  </div>
               </div>
 
-              <h2>1. Tổng hợp đóng góp</h2>
-              <table>
-                <thead><tr><th>Thành viên</th><th>Commits</th><th>Dòng thêm</th><th>Dòng xóa</th><th>Số Files</th></tr></thead>
-                <tbody>$CONTRIBUTORS_ROWS</tbody>
-              </table>
+              <script>
+                  // Logic Toggle cho Ownership và PR
+                  function setupToggle(className, btnId, limit) {
+                      const rows = document.querySelectorAll('.' + className);
+                      if (rows.length <= limit) {
+                          document.getElementById(btnId).style.display = 'none';
+                          return;
+                      }
+                      rows.forEach((row, i) => {
+                          if (i >= limit) row.classList.add(className + '-hidden');
+                      });
+                  }
 
-              <h2>2. Chi tiết Ownership theo File</h2>
-              <table id="ownershipTable">
-                <thead><tr><th>Tên File (.dart)</th><th>Người code chính</th><th>Tỷ lệ %</th></tr></thead>
-                <tbody>$OWNERSHIP_ROWS</tbody>
-              </table>
-              <button id="loadMoreBtn" class="btn-show-more">Đang tải dữ liệu...</button>
+                  let expanded = { pr: false, own: false };
+                  function toggleRows(type) {
+                      expanded[type] = !expanded[type];
+                      const rows = document.querySelectorAll('.' + type + '-row');
+                      const btn = document.getElementById('btn' + type.charAt(0).toUpperCase() + type.slice(1));
+                      
+                      rows.forEach((row, i) => {
+                          if (i >= 10) row.classList.toggle(type + '-hidden', !expanded[type]);
+                      });
+                      btn.innerText = expanded[type] ? 'Thu gọn' : 'Xem thêm...';
+                  }
 
-              <h2>3. Tốc độ commit theo tuần</h2>
-              <div style="height: 300px; margin-top: 20px;"><canvas id="timelineChart"></canvas></div>
-            </div>
+                  setupToggle('own-row', 'btnOwn', 10);
+                  setupToggle('pr-row', 'btnPr', 10);
 
-            <script>
-              document.addEventListener('DOMContentLoaded', () => {
-                const rows = Array.from(document.querySelectorAll('.ownership-row'));
-                const btn = document.getElementById('loadMoreBtn');
-                const PAGE_SIZE = 15;
-                let currentIndex = PAGE_SIZE;
-
-                if (rows.length <= PAGE_SIZE) {
-                  btn.style.display = 'none';
-                } else {
-                  // Ẩn các dòng ban đầu
-                  rows.forEach((row, index) => {
-                    if (index >= PAGE_SIZE) row.classList.add('hidden');
+                  // Biểu đồ Timeline
+                  new Chart(document.getElementById('timelineChart'), {
+                      type: 'line',
+                      data: {
+                          labels: [$WEEKLY_LABELS],
+                          datasets: [{
+                              label: 'Commits',
+                              data: [$WEEKLY_DATA],
+                              borderColor: '#1877f2',
+                              backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                              fill: true,
+                              tension: 0.4
+                          }]
+                      },
+                      options: { responsive: true, maintainAspectRatio: false }
                   });
-                  
-                  btn.innerText = 'Xem thêm file (' + (rows.length - PAGE_SIZE) + ' file còn lại)';
-
-                  btn.addEventListener('click', () => {
-                    const nextIndex = currentIndex + PAGE_SIZE;
-                    rows.slice(currentIndex, nextIndex).forEach(row => row.classList.remove('hidden'));
-                    currentIndex = nextIndex;
-
-                    if (currentIndex >= rows.length) {
-                      btn.style.display = 'none';
-                    } else {
-                      btn.innerText = 'Xem thêm file (' + (rows.length - currentIndex) + ' file còn lại)';
-                    }
-                  });
-                }
-              });
-
-              // Chart.js
-              new Chart(document.getElementById('timelineChart'), {
-                type: 'line',
-                data: {
-                  labels: [$WEEKLY_LABELS],
-                  datasets: [{
-                    label: 'Số lượng Commits',
-                    data: [$WEEKLY_DATA],
-                    borderColor: '#1a73e8',
-                    backgroundColor: 'rgba(26,115,232,0.1)',
-                    tension: 0.3,
-                    fill: true
-                  }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-              });
-            </script>
+              </script>
           </body>
           </html>
           EOF
@@ -175,5 +207,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: git-professional-report
+          name: Git-Final-Report-Group10
           path: git-report.html
