@@ -12,36 +12,34 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Quan trọng: Phải lấy toàn bộ lịch sử để tính toán
+          fetch-depth: 0
 
       - name: Generate Git Report
         run: |
+          # ĐỊNH NGHĨA THƯ MỤC DỰ ÁN (Dựa trên ảnh của bạn)
+          PROJECT_DIR="vocabsimple"
+          LIB_PATH="$PROJECT_DIR/lib"
+          ASSETS_PATH="$PROJECT_DIR/assets"
+
           # 1. THÔNG TIN CƠ BẢN
           TOTAL_COMMITS=$(git rev-list --count HEAD)
 
           # 2. THỐNG KÊ CONTRIBUTORS
           CONTRIBUTORS_ROWS=""
-          # Lấy danh sách email duy nhất
           AUTHORS=$(git log --format='%ae' | sort -u)
-          
           for EMAIL in $AUTHORS; do
             NAME=$(git log --author="$EMAIL" --format='%an' -1)
             C_COUNT=$(git rev-list --count --author="$EMAIL" HEAD)
-            
-            # Tính dòng code (Tránh lỗi nếu không có dữ liệu)
             STATS=$(git log --author="$EMAIL" --numstat --pretty=tformat: | awk 'NF{ add += $1; subs += $2 } END { printf "%d %d", add, subs }')
             LOC_ADD=$(echo $STATS | awk '{print $1}'); [ -z "$LOC_ADD" ] && LOC_ADD=0
             LOC_SUB=$(echo $STATS | awk '{print $2}'); [ -z "$LOC_SUB" ] && LOC_SUB=0
-            
-            # Số lượng file duy nhất đã chạm vào
             F_COUNT=$(git log --author="$EMAIL" --name-only --pretty=format: | sort -u | sed '/^\s*$/d' | wc -l)
-            # Đếm PR dựa trên message (Merge pull request #...)
             PR_COUNT=$(git log --author="$EMAIL" --grep="Merge pull request" --grep="(#[0-9]\+)" --pretty=oneline | wc -l)
 
             CONTRIBUTORS_ROWS+="<tr><td><b>$NAME</b></td><td>$C_COUNT</td><td><span style='color:green'>+$LOC_ADD</span></td><td><span style='color:red'>-$LOC_SUB</span></td><td>$F_COUNT</td><td><b style='color:#1a73e8'>$PR_COUNT</b></td></tr>"
           done
 
-          # 3. TIMELINE THEO TUẦN (Fix lỗi dấu phẩy dư và format JS)
+          # 3. TIMELINE THEO TUẦN
           WEEKLY_LABELS=""
           WEEKLY_DATA=""
           for i in {7..0..-1}; do
@@ -50,115 +48,82 @@ jobs:
             WEEKLY_LABELS+="\"W-$i\", "
             WEEKLY_DATA+="$W_COUNT, "
           done
-          # Loại bỏ dấu phẩy cuối cùng
           WEEKLY_LABELS=$(echo $WEEKLY_LABELS | sed 's/, $//')
           WEEKLY_DATA=$(echo $WEEKLY_DATA | sed 's/, $//')
 
-          # 4. CODE OWNERSHIP MAP
+          # 4. CODE OWNERSHIP MAP (Sửa đường dẫn PROJECT_DIR)
           OWNERSHIP_ROWS=""
-          if [ -d "lib" ]; then
-            # Chỉ quét thư mục con cấp 1 để tránh báo cáo quá dài
-            DIRS=$(find lib -maxdepth 1 -type d)
+          if [ -d "$LIB_PATH" ]; then
+            DIRS=$(find "$LIB_PATH" -maxdepth 1 -type d)
             for dir in $DIRS; do
-              # Đếm tổng dòng Dart trong folder này
-              TOTAL_LINES_DIR=$(find "$dir" -name "*.dart" -exec wc -l {} + | awk '{sum+=$1} END {print sum}')
-              if [ -n "$TOTAL_LINES_DIR" ] && [ "$TOTAL_LINES_DIR" -gt 0 ]; then
-                # Tìm người commit nhiều nhất vào folder này
-                OWNER=$(git log --pretty=format:"%an" -- "$dir" | sort | uniq -c | sort -rn | head -1 | sed 's/^[ ]*[0-9]* //')
-                # Tính % dựa trên git blame (Cẩn thận: tốn tài nguyên nếu file cực lớn)
-                OWNER_LINES=$(git blame --line-porcelain $(find "$dir" -name "*.dart") | grep "^author $OWNER" | wc -l)
-                PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$TOTAL_LINES_DIR)*100}")
-                
-                OWNERSHIP_ROWS+="<tr><td><span class='folder-badge'>/$dir/</span></td><td>$OWNER</td><td><div class='progress-container'><div class='progress-bar' style='width: $PERCENT%'></div></div><span class='percent-text'>$PERCENT%</span></td></tr>"
+              FILES=$(find "$dir" -name "*.dart")
+              if [ -n "$FILES" ]; then
+                TOTAL_LINES_DIR=$(wc -l $FILES | tail -n 1 | awk '{print $1}')
+                if [ -n "$TOTAL_LINES_DIR" ] && [ "$TOTAL_LINES_DIR" -gt 0 ]; then
+                  OWNER=$(git log --pretty=format:"%an" -- "$dir" | sort | uniq -c | sort -rn | head -1 | sed 's/^[ ]*[0-9]* //')
+                  OWNER_LINES=$(git blame --line-porcelain $FILES | grep "^author $OWNER" | wc -l)
+                  PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$TOTAL_LINES_DIR)*100}")
+                  OWNERSHIP_ROWS+="<tr><td><span class='folder-badge'>/$dir/</span></td><td>$OWNER</td><td><div class='progress-container'><div class='progress-bar' style='width: $PERCENT%'></div></div><span class='percent-text'>$PERCENT%</span></td></tr>"
+                fi
               fi
             done
           else
-            OWNERSHIP_ROWS+="<tr><td colspan='3'>⚠️ Không tìm thấy thư mục /lib</td></tr>"
+            OWNERSHIP_ROWS+="<tr><td colspan='3'>Không tìm thấy thư mục $LIB_PATH</td></tr>"
           fi
 
-          # 5. LỊCH SỬ PULL REQUESTS (Gần nhất)
+          # 5. LỊCH SỬ PULL REQUESTS
           PR_HISTORY_ROWS=""
-          # Dùng pipe để xử lý message có dấu ngoặc
-          git log --grep="Merge pull request" --grep="(#[0-9]\+)" --pretty=format:"%h|%as|%s" -n 10 > pr_logs.txt
+          git log --grep="Merge" --grep="(#[0-9]\+)" --pretty=format:"%h|%as|%s" -n 10 > pr_logs.txt
           while IFS="|" read -r hash date msg; do
-            # Thoát dấu để an toàn trong HTML
             safe_msg=$(echo "$msg" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
             PR_HISTORY_ROWS+="<tr><td><code>$hash</code></td><td><small>$date</small></td><td>$safe_msg</td></tr>"
           done < pr_logs.txt
 
-          # 6. TẠO HTML
+          # 6. TẠO HTML (Giữ nguyên phần HTML CSS của bạn)
           cat <<EOF > git-report.html
           <!DOCTYPE html>
-          <html lang="vi">
+          <html>
           <head>
             <meta charset="UTF-8">
-            <title>Git Professional Report</title>
             <style>
-              body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1c1e21; padding: 40px 20px; line-height: 1.5; }
-              .container { max-width: 1100px; margin: auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
-              h1 { color: #1a73e8; text-align: center; font-size: 2em; margin-bottom: 30px; border-bottom: 2px solid #f0f2f5; padding-bottom: 20px; }
-              h2 { margin-top: 40px; font-size: 1.25em; color: #444; display: flex; align-items: center; gap: 10px; }
-              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-              th { background: #f8f9fa; text-align: left; padding: 14px; border-bottom: 2px solid #dee2e6; color: #5f6368; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.5px; }
-              td { padding: 14px; border-bottom: 1px solid #eee; font-size: 0.95em; }
-              .folder-badge { background: #e8f0fe; padding: 4px 10px; border-radius: 4px; font-family: 'Courier New', monospace; color: #1967d2; font-weight: 500; }
-              .progress-container { background: #e9ecef; width: 120px; height: 8px; display: inline-block; border-radius: 4px; vertical-align: middle; margin-right: 12px; overflow: hidden; }
-              .progress-bar { background: #34a853; height: 100%; border-radius: 4px; }
-              .percent-text { font-weight: 600; color: #34a853; width: 45px; display: inline-block; }
-              .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); padding: 25px; border-radius: 12px; color: white; }
-              .info-card b { font-size: 1.1em; }
-              .chart-box { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-top: 20px; height: 300px; }
+              body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; padding: 20px; }
+              .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+              h1 { color: #1a73e8; text-align: center; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th { background: #f8f9fa; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: left; }
+              td { padding: 12px; border-bottom: 1px solid #eee; }
+              .folder-badge { background: #f0f2f5; padding: 4px 8px; border-radius: 4px; font-family: monospace; }
+              .progress-container { background: #eee; width: 100px; height: 8px; display: inline-block; border-radius: 4px; overflow: hidden; }
+              .progress-bar { background: #1a73e8; height: 100%; }
+              .info-grid { display: grid; grid-template-columns: 1fr 1fr; background: #e7f3ff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+              .chart-box { height: 300px; margin-top: 20px; }
             </style>
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
           </head>
           <body>
             <div class="container">
-              <h1>📊 BÁO CÁO DỰ ÁN GIT - NHÓM 10</h1>
-              
+              <h1>BÁO CÁO DỰ ÁN GIT - NHÓM 10</h1>
               <div class="info-grid">
-                <div class="info-card">
-                  <p>📂 <b>Dự án:</b> VocabSimple</p>
-                  <p>🛠️ <b>Công nghệ:</b> Flutter & Firebase</p>
+                <div>
+                  <p><b>Dự án:</b> VocabSimple</p>
+                  <p><b>Cấu trúc:</b> Monorepo ($PROJECT_DIR)</p>
                 </div>
-                <div class="info-card">
-                  <p>📈 <b>Tổng số Commits:</b> $TOTAL_COMMITS</p>
-                  <p>✅ <b>Trạng thái:</b> Production Ready</p>
+                <div>
+                  <p><b>Tổng số Commits:</b> $TOTAL_COMMITS</p>
+                  <p><b>Cập nhật:</b> $(date '+%d/%m/%Y %H:%M')</p>
                 </div>
               </div>
-
-              <h2>1. Đóng góp cá nhân (Contributors)</h2>
-              <table>
-                <thead>
-                  <tr><th>Thành viên</th><th>Commits</th><th>Thêm (+)</th><th>Xóa (-)</th><th>Files</th><th>PRs</th></tr>
-                </thead>
-                <tbody>$CONTRIBUTORS_ROWS</tbody>
-              </table>
-
-              <h2>2. Code Ownership (Bản đồ mã nguồn)</h2>
-              <table>
-                <thead>
-                  <tr><th>Module/Thư mục</th><th>Người phụ trách chính</th><th>Tỷ lệ đóng góp</th></tr>
-                </thead>
-                <tbody>$OWNERSHIP_ROWS</tbody>
-              </table>
-
-              <h2>3. Timeline hoạt động (8 tuần gần nhất)</h2>
-              <div class="chart-box">
-                <canvas id="timelineChart"></canvas>
-              </div>
-
+              <h2>1. Đóng góp cá nhân</h2>
+              <table><thead><tr><th>Thành viên</th><th>Commits</th><th>Dòng thêm</th><th>Dòng xóa</th><th>Files</th><th>PRs</th></tr></thead><tbody>$CONTRIBUTORS_ROWS</tbody></table>
+              <h2>2. Code Ownership Map</h2>
+              <table><thead><tr><th>Module Path</th><th>Owner</th><th>Ownership (%)</th></tr></thead><tbody>$OWNERSHIP_ROWS</tbody></table>
+              <h2>3. Timeline đóng góp</h2>
+              <div class="chart-box"><canvas id="timelineChart"></canvas></div>
               <h2>4. Pull Requests gần đây</h2>
-              <table>
-                <thead>
-                  <tr><th>Hash</th><th>Ngày Merge</th><th>Nội dung</th></tr>
-                </thead>
-                <tbody>$PR_HISTORY_ROWS</tbody>
-              </table>
+              <table><thead><tr><th>Hash</th><th>Ngày merge</th><th>Nội dung</th></tr></thead><tbody>$PR_HISTORY_ROWS</tbody></table>
             </div>
-
             <script>
-              const ctx = document.getElementById('timelineChart').getContext('2d');
-              new Chart(ctx, {
+              new Chart(document.getElementById('timelineChart'), {
                 type: 'line',
                 data: {
                   labels: [$WEEKLY_LABELS],
@@ -166,30 +131,20 @@ jobs:
                     label: 'Số lượng Commits',
                     data: [$WEEKLY_DATA],
                     borderColor: '#1a73e8',
-                    backgroundColor: 'rgba(26, 115, 232, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#1a73e8'
+                    backgroundColor: 'rgba(26,115,232,0.1)',
+                    tension: 0.3,
+                    fill: true
                   }]
                 },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { display: false } },
-                  scales: {
-                    y: { beginAtZero: true, grid: { color: '#f0f2f5' } },
-                    x: { grid: { display: false } }
-                  }
-                }
+                options: { responsive: true, maintainAspectRatio: false }
               });
             </script>
           </body>
           </html>
           EOF
 
-      - name: Upload Report
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: git-professional-report
+          name: git-report-html
           path: git-report.html
