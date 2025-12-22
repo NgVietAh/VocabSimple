@@ -16,14 +16,14 @@ jobs:
 
       - name: Generate Git Report
         run: |
+          # 1. ĐỊNH NGHĨA ĐƯỜNG DẪN
           PROJECT_DIR="vocabsimple"
-          LIB_PATH="$PROJECT_DIR/lib"
-          ASSETS_PATH="$PROJECT_DIR/assets"
+          SEARCH_PATH="$PROJECT_DIR/lib"
 
-          # 1. THÔNG TIN CƠ BẢN
+          # 2. THÔNG TIN CƠ BẢN
           TOTAL_COMMITS=$(git rev-list --count HEAD)
 
-          # 2. THỐNG KÊ CONTRIBUTORS
+          # 3. THỐNG KÊ CONTRIBUTORS
           CONTRIBUTORS_ROWS=""
           AUTHORS=$(git log --format='%ae' | sort -u)
           for EMAIL in $AUTHORS; do
@@ -33,11 +33,10 @@ jobs:
             LOC_ADD=$(echo $STATS | awk '{print $1}'); [ -z "$LOC_ADD" ] && LOC_ADD=0
             LOC_SUB=$(echo $STATS | awk '{print $2}'); [ -z "$LOC_SUB" ] && LOC_SUB=0
             F_COUNT=$(git log --author="$EMAIL" --name-only --pretty=format: | sort -u | sed '/^\s*$/d' | wc -l)
-            PR_COUNT=$(git log --author="$EMAIL" --grep="Merge" --grep="(#[0-9]\+)" --pretty=oneline | wc -l)
-            CONTRIBUTORS_ROWS+="<tr><td><b>$NAME</b></td><td>$C_COUNT</td><td><span style='color:green'>+$LOC_ADD</span></td><td><span style='color:red'>-$LOC_SUB</span></td><td>$F_COUNT</td><td><b style='color:#1a73e8'>$PR_COUNT</b></td></tr>"
+            CONTRIBUTORS_ROWS+="<tr><td><b>$NAME</b></td><td>$C_COUNT</td><td><span style='color:green'>+$LOC_ADD</span></td><td><span style='color:red'>-$LOC_SUB</span></td><td>$F_COUNT</td></tr>"
           done
 
-          # 3. TIMELINE THEO TUẦN
+          # 4. TIMELINE THEO TUẦN
           WEEKLY_LABELS=""
           WEEKLY_DATA=""
           for i in {7..0..-1}; do
@@ -49,32 +48,27 @@ jobs:
           WEEKLY_LABELS=$(echo $WEEKLY_LABELS | sed 's/, $//')
           WEEKLY_DATA=$(echo $WEEKLY_DATA | sed 's/, $//')
 
-          # 4. CODE OWNERSHIP MAP (Sâu cấp 15)
+          # 5. CODE OWNERSHIP CHI TIẾT ĐẾN TỪNG FILE
           OWNERSHIP_ROWS=""
-          if [ -d "$LIB_PATH" ]; then
-            # Tìm sâu đến cấp 15
-            DIRS=$(find "$LIB_PATH" -maxdepth 15 -type d)
-            for dir in $DIRS; do
-              FILES=$(find "$dir" -maxdepth 1 -name "*.dart")
-              if [ -n "$FILES" ]; then
-                TOTAL_LINES_DIR=$(wc -l $FILES | tail -n 1 | awk '{print $1}')
-                if [ -n "$TOTAL_LINES_DIR" ] && [ "$TOTAL_LINES_DIR" -gt 0 ]; then
-                  OWNER=$(git log --pretty=format:"%an" -- "$dir" | sort | uniq -c | sort -rn | head -1 | sed 's/^[ ]*[0-9]* //')
-                  OWNER_LINES=$(git blame --line-porcelain $FILES | grep "^author $OWNER" | wc -l)
-                  PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$TOTAL_LINES_DIR)*100}")
-                  OWNERSHIP_ROWS+="<tr class='ownership-row'><td><span class='folder-badge'>/$dir/</span></td><td>$OWNER</td><td><div class='progress-container'><div class='progress-bar' style='width: $PERCENT%'></div></div><span class='percent-text'>$PERCENT%</span></td></tr>"
-                fi
+          if [ -d "$SEARCH_PATH" ]; then
+            # Tìm tất cả file .dart
+            ALL_FILES=$(find "$SEARCH_PATH" -maxdepth 10 -name "*.dart" -type f)
+            
+            while read -r file; do
+              FILE_LINES=$(wc -l < "$file")
+              if [ "$FILE_LINES" -gt 0 ]; then
+                # Lấy Owner thực tế dựa trên số dòng đóng góp trong file
+                OWNER=$(git blame --line-porcelain "$file" | grep "^author " | sort | uniq -c | sort -rn | head -1 | sed 's/^.*author //')
+                OWNER_LINES=$(git blame --line-porcelain "$file" | grep "^author $OWNER" | wc -l)
+                PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$FILE_LINES)*100}")
+                
+                # Rút gọn tên file để hiển thị
+                DISPLAY_NAME=$(echo "$file" | sed "s|$PROJECT_DIR/||")
+                
+                OWNERSHIP_ROWS+="<tr class='ownership-row'><td><span class='folder-badge'>$DISPLAY_NAME</span></td><td>$OWNER</td><td><div class='progress-container'><div class='progress-bar' style='width: $PERCENT%'></div></div><span class='percent-text'>$PERCENT%</span></td></tr>"
               fi
-            done
+            done <<< "$ALL_FILES"
           fi
-
-          # 5. LỊCH SỬ PR
-          PR_HISTORY_ROWS=""
-          git log --grep="Merge" --grep="(#[0-9]\+)" --pretty=format:"%h|%as|%s" -n 20 > pr_logs.txt
-          while IFS="|" read -r hash date msg; do
-            safe_msg=$(echo "$msg" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-            PR_HISTORY_ROWS+="<tr><td><code>$hash</code></td><td><small>$date</small></td><td>$safe_msg</td></tr>"
-          done < pr_logs.txt
 
           # 6. TẠO HTML
           cat <<EOF > git-report.html
@@ -83,77 +77,79 @@ jobs:
           <head>
             <meta charset="UTF-8">
             <style>
-              body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f7f9; color: #333; padding: 20px; }
+              body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; color: #333; padding: 20px; }
               .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-              h1 { color: #1a73e8; text-align: center; }
-              .info-grid { display: grid; grid-template-columns: 1fr 1fr; background: #e7f3ff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+              h1 { color: #1a73e8; text-align: center; margin-bottom: 30px; }
+              .info-grid { display: grid; grid-template-columns: 1fr 1fr; background: #e7f3ff; padding: 20px; border-radius: 10px; margin-bottom: 25px; }
               table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-              th { background: #f8f9fa; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: left; }
-              td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
-              .folder-badge { background: #f0f2f5; padding: 3px 8px; border-radius: 4px; font-family: monospace; word-break: break-all; }
+              th { background: #f8f9fa; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: left; font-size: 0.9em; }
+              td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 0.85em; }
+              .folder-badge { background: #f0f2f5; padding: 3px 8px; border-radius: 4px; font-family: 'Consolas', monospace; color: #1a73e8; }
               .progress-container { background: #eee; width: 80px; height: 8px; display: inline-block; border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 8px; }
-              .progress-bar { background: #1a73e8; height: 100%; }
-              .percent-text { font-weight: bold; color: #1a73e8; }
-              .chart-box { height: 300px; margin-top: 20px; }
-              
-              /* Show More Styles */
-              .ownership-row.hidden { display: none; }
-              .btn-show-more { display: block; width: 200px; margin: 20px auto; padding: 10px; background: #1a73e8; color: white; text-align: center; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-              .btn-show-more:hover { background: #1557b0; }
+              .progress-bar { background: #34a853; height: 100%; }
+              .percent-text { font-weight: bold; color: #34a853; }
+              .hidden { display: none !important; }
+              .btn-show-more { display: block; width: 250px; margin: 25px auto; padding: 12px; background: #1a73e8; color: white; text-align: center; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
+              .btn-show-more:hover { background: #1557b0; box-shadow: 0 4px 12px rgba(26,115,232,0.3); }
             </style>
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
           </head>
           <body>
             <div class="container">
-              <h1>BÁO CÁO CHI TIẾT DỰ ÁN</h1>
+              <h1>📊 BÁO CÁO CẤU TRÚC & ĐÓNG GÓP CHI TIẾT</h1>
+              
               <div class="info-grid">
-                <div><p><b>Dự án:</b> VocabSimple</p><p><b>Folder:</b> $PROJECT_DIR</p></div>
-                <div><p><b>Tổng Commits:</b> $TOTAL_COMMITS</p><p><b>Ngày tạo:</b> $(date '+%d/%m/%Y %H:%M')</p></div>
+                <div><p><b>Dự án:</b> VocabSimple</p><p><b>Phạm vi:</b> $SEARCH_PATH (Cấp 15)</p></div>
+                <div><p><b>Tổng Commits:</b> $TOTAL_COMMITS</p><p><b>Cập nhật:</b> $(date '+%H:%M - %d/%m/%Y')</p></div>
               </div>
 
-              <h2>1. Đóng góp thành viên</h2>
-              <table><thead><tr><th>Thành viên</th><th>Commits</th><th>Dòng thêm</th><th>Dòng xóa</th><th>Files</th><th>PRs</th></tr></thead>
-              <tbody>$CONTRIBUTORS_ROWS</tbody></table>
+              <h2>1. Tổng hợp đóng góp</h2>
+              <table>
+                <thead><tr><th>Thành viên</th><th>Commits</th><th>Dòng thêm</th><th>Dòng xóa</th><th>Số Files</th></tr></thead>
+                <tbody>$CONTRIBUTORS_ROWS</tbody>
+              </table>
 
-              <h2>2. Chi tiết Ownership</h2>
+              <h2>2. Chi tiết Ownership theo File</h2>
               <table id="ownershipTable">
-                <thead><tr><th>Đường dẫn Module</th><th>Người phụ trách chính</th><th>Tỷ lệ</th></tr></thead>
+                <thead><tr><th>Tên File (.dart)</th><th>Người code chính</th><th>Tỷ lệ %</th></tr></thead>
                 <tbody>$OWNERSHIP_ROWS</tbody>
               </table>
-              <button id="toggleBtn" class="btn-show-more">Xem thêm tất cả</button>
+              <button id="loadMoreBtn" class="btn-show-more">Đang tải dữ liệu...</button>
 
-              <h2>3. Timeline hoạt động</h2>
-              <div class="chart-box"><canvas id="timelineChart"></canvas></div>
-
-              <h2>4. Lịch sử PR gần nhất</h2>
-              <table><thead><tr><th>Hash</th><th>Ngày</th><th>Nội dung</th></tr></thead>
-              <tbody>$PR_HISTORY_ROWS</tbody></table>
+              <h2>3. Tốc độ commit theo tuần</h2>
+              <div style="height: 300px; margin-top: 20px;"><canvas id="timelineChart"></canvas></div>
             </div>
 
             <script>
-              // Logic Show More cho bảng Ownership
-              const rows = document.querySelectorAll('.ownership-row');
-              const limit = 15; // Số dòng hiển thị ban đầu
-              let isExpanded = false;
+              document.addEventListener('DOMContentLoaded', () => {
+                const rows = Array.from(document.querySelectorAll('.ownership-row'));
+                const btn = document.getElementById('loadMoreBtn');
+                const PAGE_SIZE = 15;
+                let currentIndex = PAGE_SIZE;
 
-              function updateTable() {
-                rows.forEach((row, index) => {
-                  if (index >= limit && !isExpanded) {
-                    row.classList.add('hidden');
-                  } else {
-                    row.classList.remove('hidden');
-                  }
-                });
-                document.getElementById('toggleBtn').innerText = isExpanded ? 'Thu gọn' : 'Xem thêm tất cả (' + rows.length + ')';
-                if (rows.length <= limit) document.getElementById('toggleBtn').style.display = 'none';
-              }
+                if (rows.length <= PAGE_SIZE) {
+                  btn.style.display = 'none';
+                } else {
+                  // Ẩn các dòng ban đầu
+                  rows.forEach((row, index) => {
+                    if (index >= PAGE_SIZE) row.classList.add('hidden');
+                  });
+                  
+                  btn.innerText = 'Xem thêm file (' + (rows.length - PAGE_SIZE) + ' file còn lại)';
 
-              document.getElementById('toggleBtn').addEventListener('click', () => {
-                isExpanded = !isExpanded;
-                updateTable();
+                  btn.addEventListener('click', () => {
+                    const nextIndex = currentIndex + PAGE_SIZE;
+                    rows.slice(currentIndex, nextIndex).forEach(row => row.classList.remove('hidden'));
+                    currentIndex = nextIndex;
+
+                    if (currentIndex >= rows.length) {
+                      btn.style.display = 'none';
+                    } else {
+                      btn.innerText = 'Xem thêm file (' + (rows.length - currentIndex) + ' file còn lại)';
+                    }
+                  });
+                }
               });
-
-              updateTable();
 
               // Chart.js
               new Chart(document.getElementById('timelineChart'), {
@@ -161,7 +157,7 @@ jobs:
                 data: {
                   labels: [$WEEKLY_LABELS],
                   datasets: [{
-                    label: 'Commits',
+                    label: 'Số lượng Commits',
                     data: [$WEEKLY_DATA],
                     borderColor: '#1a73e8',
                     backgroundColor: 'rgba(26,115,232,0.1)',
@@ -179,5 +175,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: git-max-detail-report
+          name: git-professional-report
           path: git-report.html
