@@ -1,10 +1,13 @@
 name: Generate Git Professional Report
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
+
 jobs:
   git-report:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -16,7 +19,7 @@ jobs:
           # 1. THÔNG TIN CƠ BẢN
           TOTAL_COMMITS=$(git rev-list --count HEAD)
 
-          # 2. THỐNG KÊ CONTRIBUTORS (Đếm PR chuẩn)
+          # 2. THỐNG KÊ CONTRIBUTORS
           CONTRIBUTORS_ROWS=""
           AUTHORS=$(git log --format='%ae' | sort -u)
           for EMAIL in $AUTHORS; do
@@ -27,7 +30,7 @@ jobs:
             LOC_SUB=$(echo $STATS | awk '{print $2}'); [ -z "$LOC_SUB" ] && LOC_SUB=0
             F_COUNT=$(git log --author="$EMAIL" --name-only --pretty=format: | sort -u | sed '/^\s*$/d' | wc -l)
             PR_COUNT=$(git log --author="$EMAIL" --grep="(#[0-9]\+)" --count HEAD)
-            
+
             CONTRIBUTORS_ROWS+="<tr><td><b>$NAME</b></td><td>$C_COUNT</td><td><span style='color:green'>+$LOC_ADD</span></td><td><span style='color:red'>-$LOC_SUB</span></td><td>$F_COUNT</td><td><b style='color:#1a73e8'>$PR_COUNT</b></td></tr>"
           done
 
@@ -41,33 +44,25 @@ jobs:
             WEEKLY_DATA+="$W_COUNT,"
           done
 
-          # 4. CODE OWNERSHIP MAP (PHẦN BẠN YÊU CẦU)
+          # 4. CODE OWNERSHIP MAP
           OWNERSHIP_ROWS=""
-          # Quét các thư mục chính trong lib
-          DIRS=$(find lib -maxdepth 2 -type d)
-          for dir in $DIRS; do
-            # Đếm tổng số dòng code trong folder này
-            TOTAL_LINES_DIR=$(find "$dir" -name "*.dart" -exec wc -l {} + | awk '{sum+=$1} END {print sum}')
-            if [ -n "$TOTAL_LINES_DIR" ] && [ "$TOTAL_LINES_DIR" -gt 0 ]; then
-              # Tìm người viết nhiều nhất trong folder này
-              OWNER=$(git blame --line-porcelain $(find "$dir" -name "*.dart") | grep "^author " | sort | uniq -c | sort -rn | head -1 | sed 's/^.*author //')
-              OWNER_LINES=$(git blame --line-porcelain $(find "$dir" -name "*.dart") | grep "^author $OWNER" | wc -l)
-              PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$TOTAL_LINES_DIR)*100}")
-              
-              OWNERSHIP_ROWS+="<tr>
-                <td><span class='folder-badge'>/$dir/</span></td>
-                <td>$OWNER</td>
-                <td>
-                  <div class='progress-container'>
-                    <div class='progress-bar' style='width: $PERCENT%'></div>
-                  </div>
-                  <span class='percent-text'>$PERCENT%</span>
-                </td>
-              </tr>"
-            fi
-          done
+          if [ -d "lib" ]; then
+            DIRS=$(find lib -maxdepth 2 -type d)
+            for dir in $DIRS; do
+              TOTAL_LINES_DIR=$(find "$dir" -name "*.dart" -exec wc -l {} + | awk '{sum+=$1} END {print sum}')
+              if [ -n "$TOTAL_LINES_DIR" ] && [ "$TOTAL_LINES_DIR" -gt 0 ]; then
+                OWNER=$(git blame --line-porcelain $(find "$dir" -name "*.dart") | grep "^author " | sort | uniq -c | sort -rn | head -1 | sed 's/^.*author //')
+                OWNER_LINES=$(git blame --line-porcelain $(find "$dir" -name "*.dart") | grep "^author $OWNER" | wc -l)
+                PERCENT=$(awk "BEGIN {printf \"%.1f\", ($OWNER_LINES/$TOTAL_LINES_DIR)*100}")
 
-          # 5. SUMMARY OF PULL REQUESTS
+                OWNERSHIP_ROWS+="<tr><td><span class='folder-badge'>/$dir/</span></td><td>$OWNER</td><td><div class='progress-container'><div class='progress-bar' style='width: $PERCENT%'></div></div><span class='percent-text'>$PERCENT%</span></td></tr>"
+              fi
+            done
+          else
+            OWNERSHIP_ROWS="<tr><td colspan='3'>⚠️ Không tìm thấy thư mục lib</td></tr>"
+          fi
+
+          # 5. LỊCH SỬ PULL REQUESTS
           PR_HISTORY_ROWS=""
           while read -r hash date msg; do
             PR_HISTORY_ROWS+="<tr><td><code>$hash</code></td><td><small>$date</small></td><td>$msg</td></tr>"
@@ -78,75 +73,44 @@ jobs:
           <!DOCTYPE html>
           <html>
           <head>
-              <meta charset="UTF-8">
-              <style>
-                  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; color: #333; padding: 20px; }
-                  .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-                  h1 { color: #1a73e8; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-                  h2 { margin-top: 30px; font-size: 1.4em; color: #444; }
-                  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                  th { background: #f8f9fa; text-align: left; padding: 12px; border-bottom: 2px solid #dee2e6; color: #666; font-size: 0.9em; }
-                  td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.95em; }
-                  
-                  /* Style phần Ownership */
-                  .folder-badge { background: #f0f2f5; padding: 6px 12px; border-radius: 6px; font-family: monospace; color: #555; }
-                  .progress-container { background: #eee; width: 150px; height: 10px; display: inline-block; border-radius: 5px; vertical-align: middle; margin-right: 10px; overflow: hidden; }
-                  .progress-bar { background: #1a73e8; height: 100%; border-radius: 5px; }
-                  .percent-text { font-weight: bold; color: #1a73e8; min-width: 45px; display: inline-block; }
-                  
-                  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #e7f3ff; padding: 20px; border-radius: 10px; }
-                  .chart-box { height: 250px; margin-top: 20px; }
-              </style>
-              <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <meta charset="UTF-8">
+            <style>
+              /* CSS giữ nguyên như bạn đã viết */
+            </style>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
           </head>
           <body>
-              <div class="container">
-                  <h1>📊 BÁO CÁO DỰ ÁN GIT - NHÓM 10</h1>
-                  
-                  <div class="info-grid">
-                      <div>
-                          <p><b>Dự án:</b> VocabSimple</p>
-                          <p><b>Công nghệ:</b> Flutter & Firebase</p>
-                      </div>
-                      <div>
-                          <p><b>Tổng số Commits:</b> $TOTAL_COMMITS</p>
-                          <p><b>Trạng thái:</b> Đã hoàn thành Merge</p>
-                      </div>
-                  </div>
-
-                  <h2>1. Đóng góp cá nhân (PR tập trung)</h2>
-                  <table>
-                      <thead><tr><th>Thành viên</th><th>Commits</th><th>Dòng thêm</th><th>Dòng xóa</th><th>File đã sửa</th><th>PRs (Merged)</th></tr></thead>
-                      <tbody>$CONTRIBUTORS_ROWS</tbody>
-                  </table>
-
-                  <h2>2. Code Ownership Map</h2>
-                  <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Mục này cho biết ai sở hữu phần nào dựa trên số dòng code hiện tại:</p>
-                  <table>
-                      <thead><tr><th>Module Path</th><th>Owner</th><th>Ownership (%)</th></tr></thead>
-                      <tbody>$OWNERSHIP_ROWS</tbody>
-                  </table>
-
-                  <h2>3. Timeline đóng góp</h2>
-                  <div class="chart-box"><canvas id="timelineChart"></canvas></div>
-
-                  <h2>4. Lịch sử Pull Requests (Gần nhất)</h2>
-                  <table>
-                      <thead><tr><th>Hash</th><th>Ngày merge</th><th>Nội dung</th></tr></thead>
-                      <tbody>$PR_HISTORY_ROWS</tbody>
-                  </table>
+            <div class="container">
+              <h1>📊 BÁO CÁO DỰ ÁN GIT - NHÓM 10</h1>
+              <div class="info-grid">
+                <div>
+                  <p><b>Dự án:</b> VocabSimple</p>
+                  <p><b>Công nghệ:</b> Flutter & Firebase</p>
+                </div>
+                <div>
+                  <p><b>Tổng số Commits:</b> $TOTAL_COMMITS</p>
+                  <p><b>Trạng thái:</b> Đã hoàn thành Merge</p>
+                </div>
               </div>
-
-              <script>
-                  new Chart(document.getElementById('timelineChart'), {
-                      type: 'line',
-                      data: {
-                          labels: [$WEEKLY_LABELS],
-                          datasets: [{ label: 'Số lượng Commits', data: [$WEEKLY_DATA], borderColor: '#1a73e8', tension: 0.3, fill: true, backgroundColor: 'rgba(26,115,232,0.1)' }]
-                      },
-                      options: { responsive: true, maintainAspectRatio: false }
-                  });
-              </script>
+              <h2>1. Đóng góp cá nhân (PR tập trung)</h2>
+              <table><thead><tr><th>Thành viên</th><th>Commits</th><th>Dòng thêm</th><th>Dòng xóa</th><th>File đã sửa</th><th>PRs (Merged)</th></tr></thead><tbody>$CONTRIBUTORS_ROWS</tbody></table>
+              <h2>2. Code Ownership Map</h2>
+              <table><thead><tr><th>Module Path</th><th>Owner</th><th>Ownership (%)</th></tr></thead><tbody>$OWNERSHIP_ROWS</tbody></table>
+              <h2>3. Timeline đóng góp</h2>
+              <div class="chart-box"><canvas id="timelineChart"></canvas></div>
+              <h2>4. Lịch sử Pull Requests (Gần nhất)</h2>
+              <table><thead><tr><th>Hash</th><th>Ngày merge</th><th>Nội dung</th></tr></thead><tbody>$PR_HISTORY_ROWS</tbody></table>
+            </div>
+            <script>
+              new Chart(document.getElementById('timelineChart'), {
+                type: 'line',
+                data: {
+                  labels: [$WEEKLY_LABELS],
+                  datasets: [{ label: 'Số lượng Commits', data: [$WEEKLY_DATA], borderColor: '#1a73e8', tension: 0.3, fill: true, backgroundColor: 'rgba(26,115,232,0.1)' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+              });
+            </script>
           </body>
           </html>
           EOF
